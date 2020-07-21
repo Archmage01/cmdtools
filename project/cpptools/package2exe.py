@@ -19,28 +19,28 @@ class  Package_tools(object):
 
     def create2exe(self):
 
-        if True == os.path.exists("corecpp.py"):
-            os.system("pyinstaller -F corecpp.py")
+        if True == os.path.exists("core.py"):
+            os.system("pyinstaller -F core.py")
             try:
-                shutil.copy("dist/corecpp.exe", self.rootpath+"\\bin")
+                shutil.copy("dist/core.exe", self.rootpath+"\\bin")
             except IOError as e:
                 print("Unable to copy file. %s" % e)
             except:
                 print("Unexpected error:", sys.exc_info())
         #clean  temp build file
-        if  True ==   os.path.exists("corecpp.spec"):
-            os.remove("corecpp.spec")  
+        if  True ==   os.path.exists("core.spec"):
+            os.remove("core.spec")  
         if  True ==   os.path.exists("dist"):
             shutil.rmtree("dist")
         if  True ==   os.path.exists("build"):
             shutil.rmtree("build")
         os.chdir(self.rootpath+"\\bin")
-        if os.path.exists("corecpp.exe"):  
-            os.rename("corecpp.exe", "cs.exe")
+        if os.path.exists("core.exe"):  
+            os.rename("core.exe", "cst.exe")
         py_script_path = "\\".join(sys.executable.split("\\")[0:-1:]) + "\\Scripts"
         print("python: ",py_script_path )
         try:
-            shutil.copy("cs.exe", py_script_path)
+            shutil.copy("cst.exe", py_script_path)
         except IOError as e:
             print("Unable to copy file. %s" % e)
 

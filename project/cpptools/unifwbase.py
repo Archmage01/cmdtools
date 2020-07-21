@@ -1,11 +1,13 @@
-# -*- encoding: utf-8 -*-
-#@File    : util.py.py
-#@Time    : 2020/6/20 10:19
-#@Author  : Lancer
+#!/usr/bin/env python3 
+# -*- coding:utf-8 -*-
+# Author: Lancer  2020-07-20 12:03
 
-import  os,sys
+import  os, sys,re,getpass
+import  logging
 import  shutil,binascii
 
+default_libpath =  r"C:\Users\%s"%(getpass.getuser())+"\\.mavenlib"
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def  create_file(filename, content,encoding_str="utf-8"):
     '''
@@ -47,26 +49,13 @@ def  copy_file(srcfile, dstfile):
     except FileNotFoundError:
         print("copy fail: %s to  %s"%(srcfile,dstfile))
 
-def is_same_file(filename, fulldstname):
-    """
-     @brief is_same_file 首先判断修改大小，再判断修改时间，若都一致，初步判断一致
-    """
-    ret = False
-    if os.path.exists(fulldstname):
-        curstat = os.stat(filename)
-        oldstat = os.stat(fulldstname)
-        if (curstat.st_size == oldstat.st_size
-            and int(curstat.st_mtime*1000) == int(oldstat.st_mtime*1000)
-           ):
-            ret = True
-    return ret
 
 def make_dirs(new_dir,topath=False):
     # r'project\debug\test'
     if not os.path.exists(new_dir):
         try:
             os.makedirs(new_dir)
-            print("new dir %s success"%(new_dir))
+            print("===new dir %s "%(new_dir))
         except Exception as e:
             print(e)
         finally:
@@ -103,9 +92,38 @@ def run_cmd( cmds, src_path="", back_path="" ):
         finally:
             os.chdir(os.getcwd())
 
-if __name__ == '__main__':
-    pass
-    # create_file(r"src\ftest\ftest.cpp","TTTTTT")
-    # create_file(r"tttest.cpp", "TTTTTT")
-    #print(open_file("tttest.cpp"))
-    #copy_file("src\\0.0.1_pom.xml",r'src\0.0.34_pom.xml')
+
+def get_max_version(groupid_artifactId):
+    '''
+    获得模块最新版本(最大版本号默认)
+    '''
+    dst_path = default_libpath + "\\" + groupid_artifactId.replace(".", "\\") 
+    try:
+        # version_dir  = os.path.dirname(dst_path)  dst_path父目录
+        # print(version_dir)
+        versions = os.listdir(dst_path)
+        if not versions:
+            logging.info("%s  not exist version dir"%(groupid_artifactId))
+        else:
+            return  max(versions)
+    except Exception as e:
+        logging.info("%s  not exist dir"%(groupid_artifactId))
+    return  None
+
+
+def is_same_file(filename, fulldstname):
+    """
+     @brief is_same_file 首先判断修改大小，再判断修改时间，若都一致，初步判断一致
+    """
+    ret = False
+    if os.path.exists(fulldstname):
+        curstat = os.stat(filename)
+        oldstat = os.stat(fulldstname)
+        if (curstat.st_size == oldstat.st_size
+            and int(curstat.st_mtime*1000) == int(oldstat.st_mtime*1000)
+           ):
+            ret = True
+    return ret
+
+
+global_cmd = {}

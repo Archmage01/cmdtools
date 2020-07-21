@@ -19,21 +19,27 @@ class  Pom(object):
     def __init__(self, pomfile ):
         self.tree = ET.parse(pomfile)
         self.root = self.tree.getroot()
+        self.groupId_artifactId = self.get_maven_path() +"."+self.get_moduel_name()
+        self.out_lib  = self.get_outlib()
+        self.out_header = self.get_outheader()
+        self.version =  self.get_out_version()
+        self.dependencies = self.get_dependency()
 
-        # for dependency in self.root.iter("dependency"):
-        #     for artifactId in dependency.iter("artifactId"):
-        #         print(artifactId.text)
-        #     for version in dependency.iter("version"):
-        #         print(version.text)
+        # print("id: ",self.groupId_artifactId )
+        # print("输出库: ",self.out_lib)
+        # print("输出头文件: ",self.out_header)
+        # print("版本号:",self.version)
+        # for i in range(len(self.dependencies)):
+        #     print(self.dependencies[i])
 
     def  get_dependency(self):
         ret = []
         for dependency in self.root.iter("dependency"):
-            child = {}
+            child = [None,None]
             for artifactId in dependency.iter("artifactId"):
-                child["artifactId"] = artifactId.text
+                child[0] = artifactId.text
             for version in dependency.iter("version"):
-                child["version"] = version.text
+                child[1] = version.text
             ret.append(child)
         return ret
 
@@ -48,7 +54,7 @@ class  Pom(object):
     
     def get_out_version(self):
         for project in self.root.iter("project"):
-            for lib in project.iter("version"):
+            for lib in project.findall("version"):
                 return lib.text
 
     def  get_moduel_name(self):
@@ -72,8 +78,4 @@ class  Pom(object):
 
 if __name__ == '__main__':
     test = Pom("pom.xml")
-    test.get_dependency()
-    print(test.get_maven_path())
-    print(test.get_outlib())
-    print(test.get_outheader())
-    print(test.get_moduel_name())
+    

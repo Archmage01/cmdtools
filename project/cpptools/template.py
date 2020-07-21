@@ -279,7 +279,7 @@ pom_template = \
     <header>%(prjname)s.h</header>
 
     <dependencies>
-        <!-- <dependency><artifactId>com.companyname.child_moduel</artifactId></dependency> -->
+        <!-- <dependency><artifactId>com.lancer.base</artifactId></dependency> -->
         
     </dependencies>
 </project>
