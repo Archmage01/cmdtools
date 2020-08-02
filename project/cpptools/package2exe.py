@@ -36,11 +36,11 @@ class  Package_tools(object):
             shutil.rmtree("build")
         os.chdir(self.rootpath+"\\bin")
         if os.path.exists("core.exe"):  
-            os.rename("core.exe", "cst.exe")
+            os.rename("core.exe", "cs.exe")
         py_script_path = "\\".join(sys.executable.split("\\")[0:-1:]) + "\\Scripts"
         print("python: ",py_script_path )
         try:
-            shutil.copy("cst.exe", py_script_path)
+            shutil.copy("cs.exe", py_script_path)
         except IOError as e:
             print("Unable to copy file. %s" % e)
 

@@ -8,6 +8,21 @@ from    unifwbase   import *
 from    cppproject  import *
 
 
+Usage = '''\
+
+Usage
+    cs  create   <projectname like: com.lancer.demo>
+    cs  init     =  at project root path  get dependencies .lib or .h file to target project path
+    cs  build    =  use cmake tools  build  project file 
+    cs  install  =  install .lib or .h to  user local lib manage path
+    cs  utest    =  run target .exe  utest
+    cs  ftest    =  run target .exe  ftest
+    cs  clean    =  delete  project file 
+    cs  update   =  update moduel version (now not add this function)
+    cs  -h       =  get tools help info [cs --help]
+    cs  -v       =  get tools version and last modify time [cs --version]
+'''
+
 
 class  Main(object):
     def __init__(self):
@@ -22,7 +37,7 @@ class  Main(object):
         global_cmd["utest"]   = cppobj.cppproject_utest
         global_cmd["ftest"]   = cppobj.cppproject_ftest
         global_cmd["update"]  = cppobj.cppproject_updateversion
-        global_cmd["clean"]   = cppobj.cppproject_create
+        global_cmd["clean"]   = cppobj.cppproject_clean
         
         try:
             apts, msgs = getopt.getopt(sys.argv[1:],shortopts="vhu",longopts = ["help","version"] )
@@ -32,9 +47,9 @@ class  Main(object):
                 if apt in ("-u"):
                     print("组合命令")
                 elif apt in ("-v","--version"):
-                    print("version: 1.0.0  time:2020-07-20")
+                    print("\n version: 1.0.0  time:2020-07-20 author:Lancer")
                 elif apt in ("-h","--help"):
-                    print("帮助信息")
+                    print(Usage)
             if not apts: 
                 if msgs:
                     if msgs[0] in global_cmd.keys():

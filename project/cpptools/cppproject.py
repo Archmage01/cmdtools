@@ -182,7 +182,13 @@ class  CppProject(object):
 
     def  cppproject_clean(self, default_cmd=None):
         logging.info("clean project file")
-        pass
+        delfile(filepath=os.getcwd()+"\\bin")
+        delfile(filepath=os.getcwd()+"\\projects")
+        delfile(filepath=os.getcwd()+"\\pom")
+        delfile(filepath=os.getcwd()+"\\lib")
+        delfile(filepath=os.getcwd()+"\\include")
+
+
 
 
 if __name__ == "__main__":
