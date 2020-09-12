@@ -57,9 +57,8 @@ link_directories(${ROOTPATH}/lib/Windows)
 
 message(">>>> cppbuilder init start:")
 if(SRC)
-    #add_executable( ${mtest}  ${SRC} )
+    #add_executable( t_${mname}  ${SRC} )
     ADD_LIBRARY( ${mname}  ${SRC})  
-    SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
      
     #ADD_LIBRARY( ${mname}  SHARED ${SRC})   
     message("project src file show: ")
@@ -67,9 +66,6 @@ if(SRC)
             message("   ${_var}")
         endforeach()
     message(" ")
-    
-    SET(EXECUTABLE_OUTPUT_PATH ${ROOTPATH}/bin) 
-    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${ROOTPATH}/bin/Debug ) 
 endif(SRC)
 
 
@@ -227,9 +223,9 @@ public:
 };
     
     
-void  main()
+int  main(int argc,char **argv)
 {
-    
+    return 0 ;
 }
     
 """

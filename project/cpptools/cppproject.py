@@ -23,10 +23,12 @@ class  ManageLib(object):
         src_lib =   strjoin(os.getcwd()+'/lib/Debug', "%s%s"%(self.pom.out_lib,default_lib_suffix)    )
         src_hhp =   strjoin(os.getcwd()+'/src/include', "/%s"%(self.pom.out_header[0]) )
         src_pom =   os.getcwd()+"/pom.xml"
-        dst_lib =   strjoin(dst_path,'/%s%s'%(self.pom.out_lib,default_lib_suffix)  )
-                 
+        dst_lib =   strjoin(dst_path,'%s%s'%(self.pom.out_lib,default_lib_suffix)  )
         dst_hhp = dst_path+'/%s'%(self.pom.out_header[0])
         dst_pom = dst_path+'/%s.pom.xml'%(groupid_artifactid)
+        if platform.system() == "Linux":
+            src_lib =   strjoin(os.getcwd()+'/lib/Debug', "lib%s%s"%(self.pom.out_lib,default_lib_suffix)    )
+            dst_lib =   strjoin(dst_path,'lib%s%s'%(self.pom.out_lib,default_lib_suffix)  )
         try:
             os.chdir(dst_path)
         except FileNotFoundError:
