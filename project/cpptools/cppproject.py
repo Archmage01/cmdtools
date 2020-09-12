@@ -18,11 +18,13 @@ class  ManageLib(object):
         '''
         安装头文件  库到本地仓库
         '''
-        dst_path = default_libpath + "/" + groupid_artifactid.replace(".", "/") + "/"+self.pom.version
-        src_lib =   os.getcwd()+"/"+"lib/Debug/%s.lib"%(self.pom.out_lib)
-        src_hhp =   os.getcwd()+"/"+"src/include/%s"%(self.pom.out_header[0])
+        dst_path = default_libpath.replace("\\","/") + "/" + groupid_artifactid.replace(".", "/") + "/"+self.pom.version
+        #src_lib =   os.getcwd()+"/"+"lib/Debug/%s"%(self.pom.out_lib)+ default_lib_suffix
+        src_lib =   strjoin(os.getcwd()+'/lib/Debug', "%s%s"%(self.pom.out_lib,default_lib_suffix)    )
+        src_hhp =   strjoin(os.getcwd()+'/src/include', "/%s"%(self.pom.out_header[0]) )
         src_pom =   os.getcwd()+"/pom.xml"
-        dst_lib = dst_path+'/%s.lib'%(self.pom.out_lib)
+        dst_lib =   strjoin(dst_path,'/%s%s'%(self.pom.out_lib,default_lib_suffix)  )
+                 
         dst_hhp = dst_path+'/%s'%(self.pom.out_header[0])
         dst_pom = dst_path+'/%s.pom.xml'%(groupid_artifactid)
         try:
@@ -40,7 +42,7 @@ class  ManageLib(object):
                 else:
                     copy_file(srcfile=src_pom, dstfile= dst_pom  )
                     logging.info("%s install success"%(filename))
-            elif os.path.isfile(filename) and filename.endswith('.lib'):
+            elif os.path.isfile(filename) and filename.endswith(default_lib_suffix):
                 if True == is_same_file(filename,src_lib ):
                     logging.info("lib %s is not change"%(filename))
                 else:
@@ -83,9 +85,10 @@ class  ManageLib(object):
                     copy_file(srcfile=src_pom, dstfile= dst_pom  )
                     # print("==src ",src_pom )
                     # print("==to  ",dst_pom )
-                elif os.path.isfile(filename) and  filename.endswith('.lib'):
+                elif os.path.isfile(filename) and  filename.endswith(default_lib_suffix):
                     src_lib = src_path + "/%s"%(filename)
                     dst_lib = self.rootpath + "/lib/Windows/%s"%(filename)
+                    dst_lib = strjoin(self.rootpath, "lib", default_sys_prefix,"%s"%(filename) )
                     copy_file(srcfile=src_lib, dstfile= dst_lib  )
                     # print("==src ",src_lib )
                     # print("==to  ",dst_lib )
@@ -96,11 +99,6 @@ class  ManageLib(object):
                     # print("==src ",src_hhp )
                     # print("==to  ",dst_hhp )
                 ### Linux
-                elif os.path.isfile(filename) and  filename.endswith('.a'):
-                    print("Linux copy  .a")
-                    src_lib = src_path + "/%s"%(filename)
-                    dst_lib = self.rootpath + "/lib/Linux/%s"%(filename)
-                    copy_file(srcfile=src_lib, dstfile= dst_lib  )
 
             os.chdir(self.rootpath)
 

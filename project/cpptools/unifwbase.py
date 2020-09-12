@@ -8,10 +8,53 @@ import re
 import getpass
 import logging
 import shutil
-import binascii
+import platform
 
-default_libpath = r"C:\Users\%s" % (getpass.getuser())+"\\.mavenlib"
 logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+
+### 默认项目路径  库 头文件  源文件等目录
+default_libpath       = os.path.expanduser('~')+"/.mavenlib"
+default_src_prefix    = "src"
+default_header_prefix = "include"
+default_bin_prefix    = 'bin'
+default_lib_prefix    = 'lib'
+default_sys_prefix    = ''
+default_project_top_prefix = 'project'
+default_project_prefix     = 'bdef'
+default_buildinfo_name     = 'tools-build-info'
+
+src_header_prefix ="include"
+src_main_prefix   = "main"
+src_test_prefix   = "test"
+src_ftest_prefix  = "ftest"
+
+### 默认后缀一般文件类型
+default_lib_suffix    = ""
+default_header_suffix = ".h"
+default_target_suffix = ".exe"
+
+### 平台相关
+if  platform.system() == "Windows":
+    default_sys_prefix = 'Windows'
+    default_lib_suffix = '.lib'
+elif platform.system() == "Linux":
+    default_libpath       = os.path.expanduser('~')+"/mavenlib"
+    default_sys_prefix = 'Linux'
+    default_lib_suffix = '.a'
+else:
+    default_sys_prefix = "unknowsys"
+
+def strjoin(*args):
+    ### 最多支持二层嵌套(主要用于组合路径)
+    ret = []
+    for arg in args:
+        if isinstance(arg, str):
+            ret.append(arg.strip().replace("\\","/"))
+        elif  isinstance(arg, list):
+            for child in arg:
+                ret.append(child.strip())
+    return "/".join(ret)
 
 
 def create_file(filename, content, encoding_str="utf-8"):
@@ -46,9 +89,9 @@ def open_file(filename):
 
 
 def copy_file(srcfile, dstfile):
-    dir = "\\".join(dstfile.split("\\")[0:-1:])
+    dir = "/".join(dstfile.split("/")[0:-1:])
     if not os.path.exists(dir):
-        os.makedirs("\\".join(dstfile.split("\\")[0:-1:]))
+        os.makedirs("/".join(dstfile.split("/")[0:-1:]))
     try:
         if not os.path.exists(srcfile):
             print("srcfile not exist: %s" % (srcfile))
@@ -155,3 +198,11 @@ def delfile(filepath=None, file=None):
 
 
 global_cmd = {}
+
+
+if __name__ == "__main__":
+    print(strjoin(os.getcwd(),"lib", default_sys_prefix))
+    print(strjoin(os.getcwd(),default_header_prefix, "init.h"))
+    print(strjoin(os.getcwd(),default_lib_prefix, "init.lib"))
+    os.chdir(strjoin(default_libpath))
+    print(os.getcwd())
