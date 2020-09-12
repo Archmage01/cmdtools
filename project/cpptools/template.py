@@ -45,7 +45,7 @@ aux_source_directory(test_cppunit  TESTSRC )
 
 
 SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
-SET(EXECUTABLE_OUTPUT_PATH ${root}/bin) 
+SET(EXECUTABLE_OUTPUT_PATH ${root}/bin/Debug) 
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${ROOTPATH}/bin/Debug ) 
 MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
 MESSAGE(STATUS "executable_output_path: " ${EXECUTABLE_OUTPUT_PATH} )

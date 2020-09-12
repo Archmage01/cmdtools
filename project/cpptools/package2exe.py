@@ -5,28 +5,65 @@
 import os
 import sys
 import shutil
+import platform
 
 
-#打包脚本为 .exe
+#打包脚本为 
 class  Package_tools(object):
     def __init__(self):
         self.rootpath = os.getcwd()
         print(self.rootpath)
         if os.path.exists("bin") == True:
-            self.del_file(self.rootpath+"\\bin")
+            self.del_file(self.rootpath+"/bin")
         else:
             os.mkdir("bin")
 
     def create2exe(self):
-
         if True == os.path.exists("core.py"):
             os.system("pyinstaller -F core.py")
+        else:
+            print("core.py not exist  please check === ")
+            return 
+        
+        ###window
+        if 'Windows' == platform.system():
+            print(" Windows package  scripttools ")
             try:
                 shutil.copy("dist/core.exe", self.rootpath+"\\bin")
             except IOError as e:
-                print("Unable to copy file. %s" % e)
+                print("Windows Unable to copy file. %s" % e)
             except:
-                print("Unexpected error:", sys.exc_info())
+                print("Windows Unexpected error:", sys.exc_info())
+            os.chdir(self.rootpath+"/bin")
+            if os.path.exists("core.exe"):  
+                os.rename("core.exe", "cs.exe")
+            py_script_path = "\\".join(sys.executable.split("\\")[0:-1:]) + "\\Scripts"
+            print("python: ",py_script_path )
+            try:
+                shutil.copy("cs.exe", py_script_path)
+            except IOError as e:
+                print("Unable to copy file. %s" % e)
+        ###Linux
+        elif  'Linux' == platform.system():
+            print(" Linux  package  scripttools ")
+            try:
+                shutil.copy("dist/core", self.rootpath+"/bin")
+            except IOError as e:
+                print("Windows Unable to copy file. %s" % e)
+            except:
+                print("Windows Unexpected error:", sys.exc_info())
+            os.chdir(self.rootpath+"/bin")
+            if os.path.exists("core"):  
+                os.rename("core", "mycs")
+            py_script_path = '/usr/bin'
+            print("python: ",py_script_path )
+            try:
+                shutil.copy("mycs", py_script_path)
+            except IOError as e:
+                print("Unable to copy file. %s" % e)
+        else:
+            print("error  unexpect system script is not support ! ")
+
         #clean  temp build file
         if  True ==   os.path.exists("core.spec"):
             os.remove("core.spec")  
@@ -34,15 +71,8 @@ class  Package_tools(object):
             shutil.rmtree("dist")
         if  True ==   os.path.exists("build"):
             shutil.rmtree("build")
-        os.chdir(self.rootpath+"\\bin")
-        if os.path.exists("core.exe"):  
-            os.rename("core.exe", "cs.exe")
-        py_script_path = "\\".join(sys.executable.split("\\")[0:-1:]) + "\\Scripts"
-        print("python: ",py_script_path )
-        try:
-            shutil.copy("cs.exe", py_script_path)
-        except IOError as e:
-            print("Unable to copy file. %s" % e)
+        
+
 
     def del_file(self,filepath):
         """

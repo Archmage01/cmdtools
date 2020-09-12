@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 # Author: Lancer  2020-07-20 12:03
 
-import  logging,os
+import  logging,os,platform
 from    unifwbase import * 
 from    pom  import Pom 
 import  template  as tp
@@ -18,13 +18,13 @@ class  ManageLib(object):
         '''
         安装头文件  库到本地仓库
         '''
-        dst_path = default_libpath + "\\" + groupid_artifactid.replace(".", "\\") + "\\"+self.pom.version
-        src_lib =   os.getcwd()+"\\"+"lib\\Debug\\%s.lib"%(self.pom.out_lib)
-        src_hhp =   os.getcwd()+"\\"+"src\\include\\%s"%(self.pom.out_header[0])
-        src_pom =   os.getcwd()+"\\pom.xml"
-        dst_lib = dst_path+"\\%s.lib"%(self.pom.out_lib)
-        dst_hhp = dst_path+"\\%s"%(self.pom.out_header[0])
-        dst_pom = dst_path+"\\%s.pom.xml"%(groupid_artifactid)
+        dst_path = default_libpath + "/" + groupid_artifactid.replace(".", "/") + "/"+self.pom.version
+        src_lib =   os.getcwd()+"/"+"lib/Debug/%s.lib"%(self.pom.out_lib)
+        src_hhp =   os.getcwd()+"/"+"src/include/%s"%(self.pom.out_header[0])
+        src_pom =   os.getcwd()+"/pom.xml"
+        dst_lib = dst_path+'/%s.lib'%(self.pom.out_lib)
+        dst_hhp = dst_path+'/%s'%(self.pom.out_header[0])
+        dst_pom = dst_path+'/%s.pom.xml'%(groupid_artifactid)
         try:
             os.chdir(dst_path)
         except FileNotFoundError:
@@ -72,29 +72,36 @@ class  ManageLib(object):
                 pass
             ### 拉取pom lib .h文件
             print("------------")
-            src_path = default_libpath + "\\" + self.pom.dependencies[i][0].replace(".", "\\") + "\\"+self.pom.dependencies[i][1]
+            src_path = default_libpath + "/" + self.pom.dependencies[i][0].replace(".", "/") + "/"+self.pom.dependencies[i][1]
             os.chdir(src_path)
             file_list = os.listdir(os.getcwd())
             #print(file_list)
             for filename in file_list:
                 if os.path.isfile(filename) and filename.endswith('.xml'):
-                    src_pom = src_path + "\\%s"%(filename)
-                    dst_pom = self.rootpath + "\\pom\\%s"%(filename)
+                    src_pom = src_path + "/%s"%(filename)
+                    dst_pom = self.rootpath + "/pom/%s"%(filename)
                     copy_file(srcfile=src_pom, dstfile= dst_pom  )
                     # print("==src ",src_pom )
                     # print("==to  ",dst_pom )
-                elif os.path.isfile(filename) and filename.endswith('.lib'):
-                    src_lib = src_path + "\\%s"%(filename)
-                    dst_lib = self.rootpath + "\\lib\\Windows\\%s"%(filename)
+                elif os.path.isfile(filename) and  filename.endswith('.lib'):
+                    src_lib = src_path + "/%s"%(filename)
+                    dst_lib = self.rootpath + "/lib/Windows/%s"%(filename)
                     copy_file(srcfile=src_lib, dstfile= dst_lib  )
                     # print("==src ",src_lib )
                     # print("==to  ",dst_lib )
                 elif  os.path.isfile(filename) and filename.endswith('.h'):
-                    src_hhp = src_path + "\\%s"%(filename)
-                    dst_hhp = self.rootpath + "\\include\\%s"%(filename)
+                    src_hhp = src_path + "/%s"%(filename)
+                    dst_hhp = self.rootpath + "/include/%s"%(filename)
                     copy_file(srcfile=src_hhp, dstfile= dst_hhp  )
                     # print("==src ",src_hhp )
                     # print("==to  ",dst_hhp )
+                ### Linux
+                elif os.path.isfile(filename) and  filename.endswith('.a'):
+                    print("Linux copy  .a")
+                    src_lib = src_path + "/%s"%(filename)
+                    dst_lib = self.rootpath + "/lib/Linux/%s"%(filename)
+                    copy_file(srcfile=src_lib, dstfile= dst_lib  )
+
             os.chdir(self.rootpath)
 
 class  CppProject(object):
@@ -111,21 +118,26 @@ class  CppProject(object):
         logging.info("groupId: %s  moduel_name: %s "%(groupId,moduelname ))
         # create  file
         create_file(r'CMakeLists.txt', tp.topcmake%({"prjname": moduelname }) )
-        create_file(r"src\CMakeLists.txt",tp.src_leve_cmake%({"prjname": moduelname }))
+        create_file(r"src/CMakeLists.txt",tp.src_leve_cmake%({"prjname": moduelname }))
         # write  cppunit  test file
-        create_file(r"src\test_cppunit\%s_test.cpp"%(moduelname)  ,(tp.cppunit_testfile%({"prjname": moduelname })) )
-        create_file(r"src\test_cppunit\main_cppunit.cpp",  tp.cppunit_testmain )
+        create_file(r"src/test_cppunit/%s_test.cpp"%(moduelname)  ,(tp.cppunit_testfile%({"prjname": moduelname })) )
+        create_file(r"src/test_cppunit/main_cppunit.cpp",  tp.cppunit_testmain )
         # write  cpp/h  src file
-        create_file(r"src\main\%s.cpp" %moduelname, tp.cppfile_template)
-        create_file(r"src\include\%s.h" % moduelname, tp.hhp_template % ({"prjname": moduelname.upper() }))
+        create_file(r"src/main/%s.cpp" %moduelname, tp.cppfile_template)
+        create_file(r"src/include/%s.h" % moduelname, tp.hhp_template % ({"prjname": moduelname.upper() }))
         # ftest
-        create_file(r"src\ftest\ftest.cpp", tp.cppfile_template_lintcode)
+        create_file(r"src/ftest/ftest.cpp", tp.cppfile_template_lintcode)
         create_file(r"readme.md", tp.readme_template)
         create_file(r"pom.xml", tp.pom_template%({ "groupId": groupId,"prjname": moduelname }) )
 
 
     def cppproject_init(self,default_cmd=None):
-        new_dir = [ r'lib\Windows', r'projects\bdef', r'bin\Debug',r'include',r'pom' ]
+        new_dir = [  r'projects/bdef', r'bin/Debug',r'include',r'pom' ]
+        if "Windows" == platform.system():
+            new_dir.append(r'lib/Windows')
+        elif "Linux" == platform.system():
+            new_dir.append(r'lib/Linux')
+
         for dir in new_dir:
             make_dirs(dir)
         ###############
@@ -137,7 +149,7 @@ class  CppProject(object):
             mglib.repo_dependency_file()
             print("=======================================")
             ###
-            os.chdir(r'projects\bdef')
+            os.chdir(r'projects/bdef')
             run_cmd("cmake  ../.. && cd ../..")
         else:
             logging.info("dir not exist pom.xml")
@@ -155,24 +167,32 @@ class  CppProject(object):
             logging.info("pom.xml not exist  install fail ")
 
     def cppproject_utest(self,default_cmd=None):
-        if  True == os.path.exists(r'bin\Debug') :
-            os.chdir(r'bin\Debug')
+        if  True == os.path.exists(r'bin/Debug') :
+            os.chdir(r'bin/Debug')
             exenames = os.listdir(os.getcwd())
             for name in exenames:
-                if name.endswith('.exe') and name.startswith('cppunit'):
+                if name.endswith('.exe') and name.startswith('cppunit') and platform.system() == "Windows" :
                     run_cmd(name)
                     break 
+                elif name.startswith('t') and platform.system() == "Linux":
+                    print("====================Linux====================\n")
+                    run_cmd('./%s'%(name))
+                    break
         else:
             logging.info("not find dir bin\Debug ")
 
     def cppproject_ftest(self,default_cmd=None):
-        if  True == os.path.exists(r'bin\Debug') :
+        if  True == os.path.exists(r'bin/Debug') :
             os.chdir(r'bin\Debug')
             exenames = os.listdir(os.getcwd())
             for name in exenames:
-                if name.endswith('.exe') and name.startswith('ftest'):
+                if name.endswith('.exe') and name.startswith('ftest') and platform.system() == "Windows":
                     run_cmd(name)
                     break 
+                elif name.startswith('ftest') and platform.system() == "Linux":
+                    print("====================Linux====================\n")
+                    run_cmd('./%s'%(name))
+                    break
         else:
             logging.info("not find dir bin\Debug ")
 
@@ -182,11 +202,11 @@ class  CppProject(object):
 
     def  cppproject_clean(self, default_cmd=None):
         logging.info("clean project file")
-        delfile(filepath=os.getcwd()+"\\bin")
-        delfile(filepath=os.getcwd()+"\\projects")
-        delfile(filepath=os.getcwd()+"\\pom")
-        delfile(filepath=os.getcwd()+"\\lib")
-        delfile(filepath=os.getcwd()+"\\include")
+        delfile(filepath=os.getcwd()+"/bin")
+        delfile(filepath=os.getcwd()+"/projects")
+        delfile(filepath=os.getcwd()+"/pom")
+        delfile(filepath=os.getcwd()+"/lib")
+        delfile(filepath=os.getcwd()+"/include")
 
 
 

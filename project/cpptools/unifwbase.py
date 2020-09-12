@@ -21,8 +21,8 @@ def create_file(filename, content, encoding_str="utf-8"):
     content:  文件内容
     '''
     old_path = os.getcwd()
-    name = filename.split("\\")[-1]
-    filepath = "\\".join(filename.split("\\")[0:-1:])
+    name = filename.split("/")[-1]
+    filepath = "/".join(filename.split("/")[0:-1:])
     if filepath:
         if False == os.path.exists(filepath):
             os.makedirs(filepath)
@@ -58,7 +58,7 @@ def copy_file(srcfile, dstfile):
 
 
 def make_dirs(new_dir, topath=False):
-    # r'project\debug\test'
+    # 'project/debug/test'
     if not os.path.exists(new_dir):
         try:
             os.makedirs(new_dir)
