@@ -1,0 +1,18 @@
+<project>
+  <groupId>lrts.ws</groupId>
+  <artifactId>protocol</artifactId>
+  <version>2.2.5</version>
+
+    <header_prefix>app/ws</header_prefix>
+    <header>protocol.h</header>
+    <lib>protocol</lib>
+
+<dependencies>
+    <dependency><artifactId>lrts.ws.interface</artifactId></dependency>
+    <dependency><artifactId>unifw.plat.ssimp</artifactId></dependency>
+    <dependency><artifactId>unifw.base.codebase</artifactId></dependency>
+    <dependency><artifactId>unifw.base.b2v</artifactId></dependency>
+    <dependency><artifactId>unifw.base.ring</artifactId></dependency>
+    <dependency><artifactId>lrts.ws.wspub</artifactId></dependency>>
+  </dependencies>
+</project>

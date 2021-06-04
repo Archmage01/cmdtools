@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# Author: Lancer  2020-07-20 12:03
 
 import os
 import sys
@@ -14,7 +13,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
 ### 默认项目路径  库 头文件  源文件等目录
-default_libpath       = os.path.expanduser('~')+"/.mavenlib"
+default_libpath       = os.path.join(os.path.expanduser('~'),'.mavenlib')
 default_src_prefix    = "src"
 default_header_prefix = "include"
 default_bin_prefix    = 'bin'
@@ -44,18 +43,6 @@ elif platform.system() == "Linux":
     default_lib_suffix = '.a'
 else:
     default_sys_prefix = "unknowsys"
-
-def strjoin(*args):
-    ### 最多支持二层嵌套(主要用于组合路径)
-    ret = []
-    for arg in args:
-        if isinstance(arg, str):
-            ret.append(arg.strip().replace("\\","/"))
-        elif  isinstance(arg, list):
-            for child in arg:
-                ret.append(child.strip())
-    return "/".join(ret)
-
 
 def create_file(filename, content, encoding_str="utf-8"):
     '''
@@ -105,7 +92,7 @@ def make_dirs(new_dir, topath=False):
     if not os.path.exists(new_dir):
         try:
             os.makedirs(new_dir)
-            print("===new dir %s " % (new_dir))
+            print("===auto make dir %s " % (new_dir))
         except Exception as e:
             print(e)
         finally:
@@ -114,41 +101,14 @@ def make_dirs(new_dir, topath=False):
 
 
 def run_cmd(cmds, src_path="", back_path=""):
-    if src_path:
-        try:
-            os.chdir(src_path)
-        except FileNotFoundError as e:
-            print("=== dir not exsist: %s" % (src_path))
-        finally:
-            os.chdir(os.getcwd())
-    if isinstance(cmds, str):
-        os.system(cmds)
-    elif isinstance(cmds, list) or isinstance(cmds, tuple):
-        for cmd in cmds:
-            os.system(cmd)
-    elif isinstance(cmds, dict):
-        for key, value in cmds.items():
-            try:
-                key(value)
-            except Exception as e:
-                #print("=== function: %s cmd: %s "%(str(key),str(value) ))
-                print("=== err: ", e)
-    else:
-        print("=== unexpect  input data type")
-    if back_path:
-        try:
-            os.chdir(back_path)
-        except FileNotFoundError as e:
-            print("=== dir not exsist: %s  " % (back_path))
-        finally:
-            os.chdir(os.getcwd())
+    pass
 
 
 def get_max_version(groupid_artifactId):
     '''
     获得模块最新版本(最大版本号默认)
     '''
-    dst_path = default_libpath + "\\" + groupid_artifactId.replace(".", "\\")
+    dst_path =  os.path.join(default_libpath, groupid_artifactId.replace(".", "\\"))
     try:
         # version_dir  = os.path.dirname(dst_path)  dst_path父目录
         # print(version_dir)
@@ -193,7 +153,7 @@ def delfile(filepath=None, file=None):
             if True == os.path.isfile(file):
                 os.remove(file)
     except  Exception as e:
-        print(e) 
+        print(e)
 
 
 
@@ -201,8 +161,9 @@ global_cmd = {}
 
 
 if __name__ == "__main__":
-    print(strjoin(os.getcwd(),"lib", default_sys_prefix))
-    print(strjoin(os.getcwd(),default_header_prefix, "init.h"))
-    print(strjoin(os.getcwd(),default_lib_prefix, "init.lib"))
-    os.chdir(strjoin(default_libpath))
+    print(os.path.join(os.getcwd(),"lib", default_sys_prefix))
+    print(os.path.join(os.getcwd(),default_header_prefix, "init.h"))
+    print(os.path.join(os.getcwd(),default_lib_prefix, "init.lib"))
+    #os.chdir(os.path.join(default_libpath))
     print(os.getcwd())
+    print(get_max_version('lrts.com.demo'))
