@@ -81,10 +81,10 @@ def copy_file(srcfile, dstfile):
         os.makedirs("/".join(dstfile.split("/")[0:-1:]))
     try:
         if not os.path.exists(srcfile):
-            print("srcfile not exist: %s" % (srcfile))
+            logging.error("srcfile not exist: %s" % (srcfile))
         shutil.copy2(srcfile, dstfile)
     except FileNotFoundError:
-        print("copy fail: %s to  %s" % (srcfile, dstfile))
+        logging.error("copy fail: %s to  %s" % (srcfile, dstfile))
 
 
 def make_dirs(new_dir, topath=False):

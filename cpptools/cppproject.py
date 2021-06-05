@@ -1,23 +1,160 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from pom import Pom
-from pub import *
+from   pom import Pom
+from   pub import *
 import os,logging,platform
 import template  as tp
+from typing import List
+
+
+def join_change_path(prefix_path:str, mb_list, max_version=None ):
+    '''
+    转化路径 拼接路径
+    :param prefix_path:  默认libpath
+    :param mb_list    :  artifactId, groupid
+    :param max_version:  None 默认版本  other 实际版本号
+    :return:
+    '''
+    ret = os.path.join(prefix_path,*mb_list)
+    if max_version:
+        ret = os.path.join(ret,max_version)
+    return  ret
+
+def is_dirs_exists(dirs, createdir=None):
+    '''
+    判断目录是否存在
+    :param dirs     :  目录
+    :param createdir:  None不新建 True:若目录不存在则新建目录
+    :return: True 目录存在   False 目录不存在
+    '''
+    if os.path.isdir(dirs):
+        return True
+    else:
+        if createdir:
+            os.makedirs(dirs)
+            return True
+    return False
+
+
+def is_file_exists(filespath, createdir=None):
+    '''
+    判断目录下文件是否存在
+    :param filespath:  文件绝对路径
+    :param createdir:  None不新建 True:若目录不存在则新建目录
+    :return : True 文件存在   False 文件不存在
+    '''
+    if os.path.isfile(filespath):
+        return True
+    else:
+        if platform.system() == "Windows":
+            if createdir:
+                path = '\\'.join(filespath.split('\\')[0:-1:])
+                is_dirs_exists(path,True)
+        else:
+            if createdir:
+                path = '/'.join(filespath.split('\\')[0:-1:])
+                is_dirs_exists(path,True)
+    return False
+
+
+class MavenAutoTools(object):
+    def __init__(self,pom):
+        self.rootpath  = os.getcwd()
+        self.pom       = Pom(pom)
+        # 安装本地文件
+
+        # 获得依赖文件
+
+    def get_last_version(self, groupid, artifactId ):
+        '''
+        获得最新版本号  None未install过文件
+        '''
+        groupid.extend(artifactId)
+        basedir = join_change_path( default_libpath, groupid )
+        is_dirs_exists(basedir,True)
+        os.chdir(basedir)
+        versions = []
+        for root, dirs, files in os.walk(basedir):
+            for dir in dirs:
+                versions.append(dir)
+            break
+        os.chdir(self.rootpath)  #chage dirs
+        if versions:
+            return max(versions)
+        else:
+            return None
+
+    def pull_transform_libs_path(self, moduel_info, version=None ):
+        '''
+        转化lib库路径  lrts.ws.interface
+        :return: 源地址文件绝对路径, 目的地绝对路径
+        '''
+        moduel_info = moduel_info.split('.')
+        if not version: version = self.get_last_version(moduel_info[:-1:], [moduel_info[-1]] )
+        src_addr = join_change_path(default_libpath, moduel_info, version)
+        src_addr = join_change_path(src_addr, self.pom.lib)+'.lib'
+        dest_addr = join_change_path(os.getcwd(),['lib','Windows','%s.lib'%(self.pom.lib[0])] )
+        return [src_addr, dest_addr ]
+
+    def pull_transform_header_path(self,moduel_info, version=None):
+        '''
+        转化头文件路径
+        :return: 源地址文件绝对路径, 目的地绝对路径
+        '''
+        moduel_info = moduel_info.split('.')
+        if not version: version = self.get_last_version(moduel_info[:-1:], [moduel_info[-1]] )
+        src_addr = join_change_path(default_libpath, moduel_info, version)
+        src_addr = join_change_path(src_addr, self.pom.header)
+        dest_addr = join_change_path(os.getcwd(),['include','%s'%(self.pom.header[0])] )
+        return [src_addr, dest_addr ]
+
+    def pull_transform_pom_path(self,moduel_info, version=None):
+        '''
+        转化pom路径
+        :return: 源地址文件绝对路径, 目的地绝对路径
+        '''
+        moduel_info = moduel_info.split('.')
+        if not version: version = self.get_last_version(moduel_info[:-1:], [moduel_info[-1]])
+        src_addr = join_change_path(default_libpath, moduel_info, version)
+        src_addr = join_change_path(src_addr, ['pom.xml'])
+        dest_addr = join_change_path(os.getcwd(), ['pom','pom.xml'])
+        return [src_addr, dest_addr]
+
+
+    def push_transform_header_path(self,moduel_info, version=None):
+        pass
+
+
+    def push_libs_to_repository(self):
+        '''
+        将本地.lib .h .pom文件安装到本地仓库
+        :return:
+        '''
+        return True
+
+    def repo_dependencys_file(self):
+        '''
+        获取远程/本地仓库中 .lib .h .pom文件
+        :return:
+        '''
+        return False
+
+
+
+
 
 class  ManageLibs(object):
     def __init__(self,pompath):
-        self.rootpath = os.getcwd()
-        self.pom = None
+        self.rootpath    = os.getcwd()
+        self.pom         = None
         self.dependencys = None
 
-    def update_pom_info(self,pom):
+    def get_pom_info(self,pom):
         '''
         获得pom信息
         '''
-        self.pom = Pom(pom)
-        return self.pom
+        return Pom(pom)
 
     def get_dependencys(self,pom):
         self.dependencys = Pom(pom).dependencies
