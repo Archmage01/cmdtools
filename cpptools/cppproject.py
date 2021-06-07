@@ -57,14 +57,29 @@ def is_file_exists(filespath, createdir=None):
                 is_dirs_exists(path,True)
     return False
 
+def copy_file(srcfile, dstfile):
+    '''
+    复制文件
+    :param srcfile: 源文件地址
+    :param dstfile: 目的地址
+    '''
+    if True != is_file_exists(srcfile):
+        logging.error("err:  src file not exists %s"%(srcfile))
+        return False
+    else:
+        is_file_exists(dstfile,createdir=True) #目录不存在就创建
+        try:
+            shutil.copy2(srcfile, dstfile)
+            return True
+        except:
+            logging.error("copy fail: %s to  %s" % (srcfile, dstfile))
+            return False
+
 
 class MavenAutoTools(object):
     def __init__(self,pom):
         self.rootpath  = os.getcwd()
         self.pom       = Pom(pom)
-        # 安装本地文件
-
-        # 获得依赖文件
 
     def get_last_version(self, groupid, artifactId ):
         '''
@@ -85,97 +100,140 @@ class MavenAutoTools(object):
         else:
             return None
 
-    def pull_transform_libs_path(self, moduel_info, version=None ):
+    def get_child_module_pom(self, moduel_info, version):
+        '''
+        解析子模块pom.xml文件
+        '''
+        moduel_info = moduel_info.split('.')
+        src_module_addr = join_change_path(default_libpath, moduel_info, version)+'\pom.xml'
+        return Pom(src_module_addr)
+
+    def pull_transform_libs_path(self, moduel_info, version ):
         '''
         转化lib库路径  lrts.ws.interface
         :return: 源地址文件绝对路径, 目的地绝对路径
         '''
+        #解析子模块pom
+        childpom = self.get_child_module_pom(moduel_info, version)
         moduel_info = moduel_info.split('.')
-        if not version: version = self.get_last_version(moduel_info[:-1:], [moduel_info[-1]] )
         src_addr = join_change_path(default_libpath, moduel_info, version)
-        src_addr = join_change_path(src_addr, self.pom.lib)+'.lib'
-        dest_addr = join_change_path(os.getcwd(),['lib','Windows','%s.lib'%(self.pom.lib[0])] )
+        src_addr = join_change_path(src_addr, childpom.lib)+'.lib'
+        dest_addr = join_change_path(os.getcwd(),['lib','Windows','%s.lib'%(childpom.lib[0])] )
         return [src_addr, dest_addr ]
 
-    def pull_transform_header_path(self,moduel_info, version=None):
+    def pull_transform_header_path(self,moduel_info, version):
         '''
         转化头文件路径
         :return: 源地址文件绝对路径, 目的地绝对路径
         '''
+        childpom = self.get_child_module_pom(moduel_info, version)
         moduel_info = moduel_info.split('.')
-        if not version: version = self.get_last_version(moduel_info[:-1:], [moduel_info[-1]] )
         src_addr = join_change_path(default_libpath, moduel_info, version)
-        src_addr = join_change_path(src_addr, self.pom.header)
-        dest_addr = join_change_path(os.getcwd(),['include','%s'%(self.pom.header[0])] )
+        src_addr = join_change_path(src_addr, childpom.header)
+        dest_addr = join_change_path(os.getcwd(),['include','%s'%(childpom.header[0])] )
         return [src_addr, dest_addr ]
 
-    def pull_transform_pom_path(self,moduel_info, version=None):
+    def pull_transform_pom_path(self,moduel_info, version):
         '''
         转化pom路径
         :return: 源地址文件绝对路径, 目的地绝对路径
         '''
+        temp = moduel_info
         moduel_info = moduel_info.split('.')
-        if not version: version = self.get_last_version(moduel_info[:-1:], [moduel_info[-1]])
         src_addr = join_change_path(default_libpath, moduel_info, version)
         src_addr = join_change_path(src_addr, ['pom.xml'])
-        dest_addr = join_change_path(os.getcwd(), ['pom','pom.xml'])
+        dest_addr = join_change_path(os.getcwd(), ['pom','pom-%s-%s.xml'%(temp,version)])
         return [src_addr, dest_addr]
 
-
-    def push_transform_header_path(self,moduel_info, version=None):
-        pass
-
-
-    def push_libs_to_repository(self):
+    def push_libs_to_repository(self, moduel_info, version=None ):
         '''
-        将本地.lib .h .pom文件安装到本地仓库
+        将本地.lib文件安装到本地仓库
         :return:
         '''
-        return True
+        moduel_info = moduel_info.split('.')
+        repository_addr = join_change_path(default_libpath, moduel_info, self.pom.version[0])
+        repository_addr = os.path.join(repository_addr,"%s.lib"%(self.pom.lib[0]))
+        src_addr = join_change_path(os.getcwd(), ["lib","Debug","%s.lib"%(self.pom.lib[0])])
+        return [repository_addr, src_addr]
+
+    def push_pom_to_repository(self, moduel_info, version=None ):
+        '''
+        将本地pom文件安装到本地仓库
+        :return:
+        '''
+        moduel_info = moduel_info.split('.')
+        repository_addr = join_change_path(default_libpath, moduel_info, self.pom.version[0])
+        repository_addr = os.path.join(repository_addr,'pom.xml')
+        src_addr = join_change_path(os.getcwd(), ['pom.xml'])
+        return [repository_addr, src_addr]
+
+    def push_header_to_repository(self, moduel_info, version=None ):
+        '''
+        将本地头文件文件安装到本地仓库
+        :return:
+        '''
+        moduel_info = moduel_info.split('.')
+        repository_addr = join_change_path(default_libpath, moduel_info, self.pom.version[0])
+        repository_addr = os.path.join(repository_addr,self.pom.header[0])
+        src_addr = join_change_path(os.getcwd(), ["src",'include',self.pom.header[0]])
+        return [repository_addr, src_addr]
+
+    def install_all_interface_files(self):
+        '''
+        安装本模块的输出文件 .pom .lib .h
+        '''
+        try:
+            #安装pom文件
+            moduel_info = self.pom.groupid[0]+'.'+self.pom.groupid[1]+'.'+self.pom.artifactId[0]
+            ret = self.push_pom_to_repository(moduel_info, self.pom.version)
+            #print(ret)
+            copy_file(ret[1], ret[0])
+            #安装头文件
+            ret = self.push_header_to_repository(moduel_info, self.pom.version)
+            #print(ret)
+            copy_file(ret[1], ret[0])
+            #安装库文件
+            ret = self.push_libs_to_repository(moduel_info, self.pom.version)
+            #print(ret)
+            copy_file(ret[1], ret[0])
+            logging.info('\n %s install files success  '%(moduel_info) )
+            logging.info(" moduel  version: %s"%(self.pom.version[0] ))
+        except:
+            logging.info('\n %s install files fail  '%(moduel_info) )
+            logging.info(" moduel  version: %s"%(self.pom.version[0] ))
+
+
 
     def repo_dependencys_file(self):
         '''
         获取远程/本地仓库中 .lib .h .pom文件
-        :return:
         '''
-        return False
-
-
-
-
-
-class  ManageLibs(object):
-    def __init__(self,pompath):
-        self.rootpath    = os.getcwd()
-        self.pom         = None
-        self.dependencys = None
-
-    def get_pom_info(self,pom):
-        '''
-        获得pom信息
-        '''
-        return Pom(pom)
-
-    def get_dependencys(self,pom):
-        self.dependencys = Pom(pom).dependencies
-
-
-
-    def install_local_file(self,groupid_artifactid):
-        '''
-        安装头文件  库到本地仓库
-        '''
-        pass
-
-    def repo_dependencys_file(self):
-        '''
-        拉取本模块依赖的头文件及库
-        '''
-
-    def repo_dependency_sigle(self):
-        pass
-
-
+        logging.info("\n======================dependencies=============================")
+        #遍历依赖的模块
+        for key,value in self.pom.get_dependencies().items():
+            temp = key.split('.')
+            lastversion = self.get_last_version(temp[:-1:], [temp[-1]])
+            if value: #获得指定版本
+                #安装pom文件
+                ret = self.pull_transform_pom_path(key,value )
+                copy_file(ret[0], ret[1])
+                # 安装头文件
+                ret = self.pull_transform_header_path(key,value )
+                copy_file(ret[0], ret[1])
+                # 安装库文件
+                ret = self.pull_transform_libs_path(key,value )
+                copy_file(ret[0], ret[1])
+                logging.info(key.ljust(30,' ')+'version: %s'%(value))
+            else:  #获得最新版本
+                ret = self.pull_transform_pom_path(key, lastversion)
+                copy_file(ret[0], ret[1])
+                # 安装头文件
+                ret = self.pull_transform_header_path(key,lastversion)
+                copy_file(ret[0], ret[1])
+                ret = self.pull_transform_libs_path(key,lastversion )
+                copy_file(ret[0], ret[1])
+                logging.info(key.ljust(30,' ')+'version: %s'%(lastversion))
+        logging.info("======================dependencies=============================\n")
 
 
 
@@ -219,9 +277,8 @@ class  CppProject(object):
         if os.path.exists("pom.xml"):
             os.chdir(self.rootpath)
             ### 拉取依赖库 及头文件
-            print("=======================================")
-            #pull_local_file(self.pom.dependencies)
-            print("=======================================")
+            pom = MavenAutoTools('pom.xml')
+            pom.repo_dependencys_file()
             ###
             os.chdir(r'projects/bdef')
             os.system("cmake  ../.. && cd ../..")
@@ -234,8 +291,9 @@ class  CppProject(object):
 
     def cppproject_install(self):
         if os.path.exists("pom.xml"):
-            #push_local_file()
-            print("install files ")
+            #安装文件到本地仓库
+            pom = MavenAutoTools('pom.xml')
+            pom.install_all_interface_files()
         else:
             logging.info("pom.xml not exist  install fail ")
 

@@ -17,14 +17,11 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(test.header,      ['protocol.h'])
         self.assertEqual(test.lib,         ['protocol'])
         dp = {
-            "lrts.ws.interface":None,
-            "unifw.plat.ssimp": None,
-            "unifw.base.codebase":None,
             "unifw.base.b2v":    None,
             "unifw.base.ring":None,
             "lrts.ws.wspub":None,
         }
-        self.assertEqual(test.get_dependencies(), dp )
+        self.assertEqual(test.get_dependencies(), {} )
 
 
 

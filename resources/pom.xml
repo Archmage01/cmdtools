@@ -8,11 +8,7 @@
     <lib>protocol</lib>
 
 <dependencies>
-    <dependency><artifactId>lrts.ws.interface</artifactId></dependency>
-    <dependency><artifactId>unifw.plat.ssimp</artifactId></dependency>
-    <dependency><artifactId>unifw.base.codebase</artifactId></dependency>
-    <dependency><artifactId>unifw.base.b2v</artifactId></dependency>
-    <dependency><artifactId>unifw.base.ring</artifactId></dependency>
-    <dependency><artifactId>lrts.ws.wspub</artifactId></dependency>>
+
+
   </dependencies>
 </project>

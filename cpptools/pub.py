@@ -75,17 +75,6 @@ def open_file(filename):
         print("cannot find file: %s " % (filename))
 
 
-def copy_file(srcfile, dstfile):
-    dir = "/".join(dstfile.split("/")[0:-1:])
-    if not os.path.exists(dir):
-        os.makedirs("/".join(dstfile.split("/")[0:-1:]))
-    try:
-        if not os.path.exists(srcfile):
-            logging.error("srcfile not exist: %s" % (srcfile))
-        shutil.copy2(srcfile, dstfile)
-    except FileNotFoundError:
-        logging.error("copy fail: %s to  %s" % (srcfile, dstfile))
-
 
 def make_dirs(new_dir, topath=False):
     # 'project/debug/test'
