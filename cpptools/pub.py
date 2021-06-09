@@ -64,16 +64,17 @@ def create_file(filename, content, encoding_str="utf-8"):
     print("create file success: [ %s ] " % (filename))
 
 
+
 def open_file(filename):
     try:
         with open(filename, mode="r", encoding='utf-8') as file:
-            return file.read()
+            return [file.read(), 'utf-8']
     except UnicodeDecodeError:
         with open(filename, mode="r", encoding='gbk') as file:
-            return file.read()
+            return [file.read(),'gbk']
     except IOError:
         print("cannot find file: %s " % (filename))
-
+        return None
 
 
 def make_dirs(new_dir, topath=False):

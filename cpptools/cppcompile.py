@@ -48,6 +48,12 @@ class Main(object):
                         global_cmd["update"] = cppobj.cppproject_updateversion
                         global_cmd["clean"] = cppobj.cppproject_clean
                         global_cmd[msgs[0]]()
+                    elif msgs[0] == 'update':
+                        cppobj = CppProject('pom.xml')
+                        global_cmd["update"] = cppobj.cppproject_updateversion
+                        global_cmd[msgs[0]](msgs[1])
+                    else:
+                        print("=== tools not support this cmd ")
                 else:
                     pass
 

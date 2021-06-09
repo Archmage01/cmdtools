@@ -5,7 +5,8 @@ from   pom import Pom
 from   pub import *
 import os,logging,platform
 import template  as tp
-from typing import List
+from   typing import List
+import re,time
 
 
 def join_change_path(prefix_path:str, mb_list, max_version=None ):
@@ -118,6 +119,8 @@ class MavenAutoTools(object):
         moduel_info = moduel_info.split('.')
         src_addr = join_change_path(default_libpath, moduel_info, version)
         src_addr = join_change_path(src_addr, childpom.lib)+'.lib'
+        if not childpom.lib: #无库文件
+            return None
         dest_addr = join_change_path(os.getcwd(),['lib','Windows','%s.lib'%(childpom.lib[0])] )
         return [src_addr, dest_addr ]
 
@@ -130,6 +133,8 @@ class MavenAutoTools(object):
         moduel_info = moduel_info.split('.')
         src_addr = join_change_path(default_libpath, moduel_info, version)
         src_addr = join_change_path(src_addr, childpom.header)
+        if not childpom.header: #无头文件
+            return None
         dest_addr = join_change_path(os.getcwd(),['include','%s'%(childpom.header[0])] )
         return [src_addr, dest_addr ]
 
@@ -215,22 +220,22 @@ class MavenAutoTools(object):
             lastversion = self.get_last_version(temp[:-1:], [temp[-1]])
             if value: #获得指定版本
                 #安装pom文件
-                ret = self.pull_transform_pom_path(key,value )
+                ret = self.pull_transform_pom_path(key, value )
                 copy_file(ret[0], ret[1])
                 # 安装头文件
-                ret = self.pull_transform_header_path(key,value )
+                if ret: ret = self.pull_transform_header_path(key,value )
                 copy_file(ret[0], ret[1])
                 # 安装库文件
                 ret = self.pull_transform_libs_path(key,value )
-                copy_file(ret[0], ret[1])
+                if ret: copy_file(ret[0], ret[1])
                 logging.info(key.ljust(30,' ')+'version: %s'%(value))
             else:  #获得最新版本
                 ret = self.pull_transform_pom_path(key, lastversion)
                 copy_file(ret[0], ret[1])
                 # 安装头文件
-                ret = self.pull_transform_header_path(key,lastversion)
+                if ret:ret = self.pull_transform_header_path(key,lastversion)
                 copy_file(ret[0], ret[1])
-                ret = self.pull_transform_libs_path(key,lastversion )
+                if ret: ret = self.pull_transform_libs_path(key,lastversion )
                 copy_file(ret[0], ret[1])
                 logging.info(key.ljust(30,' ')+'version: %s'%(lastversion))
         logging.info("======================dependencies=============================\n")
@@ -252,7 +257,8 @@ def create_project(project_info:str):
     create_file(r"src/test_cppunit/%s_test.cpp" % (moduelname), (tp.cppunit_testfile % ({"prjname": moduelname})))
     create_file(r"src/test_cppunit/main_cppunit.cpp", tp.cppunit_testmain)
     # write  cpp/h  src file
-    create_file(r"src/main/%s.cpp" % moduelname, tp.cppfile_template)
+    create_file(r"src/main/%s.c" % moduelname, tp.cppfile_template)
+    create_file(r"src/main/ver_%s.c" % moduelname, tp.ver_module_template%({"prjname": moduelname}))
     create_file(r"src/include/%s.h" % moduelname, tp.hhp_template % ({"prjname": moduelname.upper()}))
     # ftest
     create_file(r"src/ftest/ftest.cpp", tp.cppfile_template_lintcode)
@@ -327,8 +333,67 @@ class  CppProject(object):
         else:
             logging.info("not find dir bin\Debug ")
 
+    def check_version(self, dst_version ):
+        #检查版本号
+        pattern = re.compile(r'\d{1}\.\d{1,2}\.\d{1,2}?')
+        result = pattern.match(dst_version)
+        if not result:
+            print('\n=== version err: %s please check version'%(dst_version))
+            return False
+        else:
+            return True
+
     def cppproject_updateversion(self, dst_version):
-        logging.info("升级版本号to: %s"%dst_version)
+        #logging.info("升级版本号to: %s"%dst_version)
+        timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        if not self.check_version(dst_version): return 
+        #修改pom文件 
+        pom = Pom('pom.xml')
+        old_version = pom.version[0]
+        ret = open_file('pom.xml')
+        if ret:
+            content, charset = ret[0],ret[1]
+            with open('pom.xml', mode="w+", encoding=charset) as file:
+                content = re.sub(r'\<version\>.*\<\/version\>',"<version>%s</version>"%(dst_version), content, 1 )
+                file.write(content)
+                file.close()
+        else:
+            logging.info(" auto update version pom.xml fail ")
+        #修改.c文件中版本号
+        pomfile= os.path.join(os.getcwd(),'src','main','ver_%s.c'%(pom.artifactId[0]))
+        ret = open_file(pomfile)
+        if ret:
+            content, charset = ret[0],ret[1]
+            with open(pomfile, mode="w+", encoding=charset) as file:
+                temp = dst_version.split('.') 
+                major,minor,patch = temp[0],temp[1],temp[2]  
+                content = re.sub(r'\/\*- major\*\/\s{0,5}\d{1,3},',r'/*- major*/    %s,'%(major), content, 1 )
+                content = re.sub(r'\/\*- minor\*\/\s{0,5}\d{1,3},',r'/*- minor*/    %s,'%(minor), content, 1 )
+                content = re.sub(r'\/\*- patch\*\/\s{0,5}\d{1,3},',r'/*- patch*/    %s,'%(patch), content, 1 )
+                content += "\n/* author: %s update version: %s time:%s  */"%(getpass.getuser(), dst_version, timestr )
+                file.write(content)
+                file.close()
+        else:
+            logging.info(" auto update version .c fail ")
+        #修改单元测试中版本号
+        utestfile= os.path.join(os.getcwd(),'src','test_cppunit','%s_test.cpp'%(pom.artifactId[0]))
+        ret = open_file(utestfile)
+        if ret:
+            content, charset = ret[0],ret[1]
+            with open(utestfile, mode="w+", encoding=charset) as file:
+                temp = dst_version.split('.') 
+                major,minor,patch = temp[0],temp[1],temp[2]  
+                content = re.sub(r'CPPUNIT_EASSERT\(\s?\d{1,3},\s?ver_%s.major'%(pom.artifactId[0]),r'CPPUNIT_EASSERT( %s, ver_%s.major'%(major, pom.artifactId[0]), content, 1 )
+                content = re.sub(r'CPPUNIT_EASSERT\(\s?\d{1,3},\s?ver_%s.minor'%(pom.artifactId[0]),r'CPPUNIT_EASSERT( %s, ver_%s.minor'%(minor, pom.artifactId[0]), content, 1 )
+                content = re.sub(r'CPPUNIT_EASSERT\(\s?\d{1,3},\s?ver_%s.patch'%(pom.artifactId[0]),r'CPPUNIT_EASSERT( %s, ver_%s.patch'%(patch, pom.artifactId[0]), content, 1 )
+                file.write(content)
+                file.close()
+        else:
+            logging.info(" auto update version .cpp fail ")
+
+        logging.info("\n auto update version from: %s to %s  success "%( old_version,  dst_version ))
+
+        
 
     def  cppproject_clean(self):
         logging.info("clean project file")
