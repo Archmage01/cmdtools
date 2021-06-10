@@ -9,7 +9,7 @@ import logging
 import shutil
 import platform
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format='===cmvn===  %(message)s')
 
 
 ### 默认项目路径  库 头文件  源文件等目录
@@ -61,7 +61,7 @@ def create_file(filename, content, encoding_str="utf-8"):
         file.write(content)
         file.close()
     os.chdir(old_path)
-    print("create file success: [ %s ] " % (filename))
+    logging.info("create file success: [ %s ] " % (filename))
 
 
 
@@ -73,7 +73,7 @@ def open_file(filename):
         with open(filename, mode="r", encoding='gbk') as file:
             return [file.read(),'gbk']
     except IOError:
-        print("cannot find file: %s " % (filename))
+        logging.info("cannot find file: %s " % (filename))
         return None
 
 
@@ -82,7 +82,7 @@ def make_dirs(new_dir, topath=False):
     if not os.path.exists(new_dir):
         try:
             os.makedirs(new_dir)
-            print("===auto make dir %s " % (new_dir))
+            logging.info(" make dir %s " % (new_dir))
         except Exception as e:
             print(e)
         finally:

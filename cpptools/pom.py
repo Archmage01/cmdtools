@@ -47,7 +47,7 @@ class Pom(object):
             elif 'header_prefix' == node.tag:
                 self.header_prefix = node.text.strip().split('/')
             elif 'header' == node.tag:
-                self.header = [node.text]
+                self.header.append(node.text)
             elif 'lib' == node.tag:
                 self.lib = [node.text]
             else:

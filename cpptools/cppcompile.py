@@ -3,64 +3,86 @@
 
 
 import os,sys,getopt
-from pub import *
-from cppproject import *
+from   pub  import *
+from   cppproject import *
 
-Usage = '''\
+__version__ = 'version: 1.0.2 '
+__autor__   = 'author : Zero  '
+__TIME__    = 'time:2020-06-10'
 
-Usage
-    create   <projectname like: com.lancer.demo>
-    init     =  at project root path  get dependencies .lib or .h file to target project path
-    build    =  use cmake tools  build  project file 
-    install  =  install .lib or .h to  user local lib manage path
-    utest    =  run target .exe  utest
-    ftest    =  run target .exe  ftest
-    clean    =  delete  project file 
-    update   =  update moduel version (now not add this function)
-    -h       =  get tools help info [cs --help]
-    -v       =  get tools version and last modify time [cs --version]
+Usage = \
 '''
 
-class Main(object):
-    def __init__(self):
-        try:
-            apts, msgs = getopt.getopt(sys.argv[1:], shortopts="vh", longopts=["help", "version"])
-            # print(apts)
-            # print(msgs)
-            for apt, _ in apts:
-                if apt in ("-v", "--version"):
-                    print("\n version: 1.0.1 time:2020-06-20 author:Zero ")
-                elif apt in ("-h", "--help"):
-                    print(Usage)
-            if not apts:
-                if msgs:
-                    if msgs[0] == 'create':
-                        if len(msgs)>1:
-                            create_project(msgs[1])
-                    elif msgs[0] in ('init','build','install','utest','ftest','clean'):
-                        # global global_cmd
-                        cppobj = CppProject('pom.xml')
-                        global_cmd["init"] = cppobj.cppproject_init
-                        global_cmd["build"] = cppobj.cppproject_build
-                        global_cmd["install"] = cppobj.cppproject_install
-                        global_cmd["utest"] = cppobj.cppproject_utest
-                        global_cmd["ftest"] = cppobj.cppproject_ftest
-                        global_cmd["update"] = cppobj.cppproject_updateversion
-                        global_cmd["clean"] = cppobj.cppproject_clean
-                        global_cmd[msgs[0]]()
-                    elif msgs[0] == 'update':
-                        cppobj = CppProject('pom.xml')
-                        global_cmd["update"] = cppobj.cppproject_updateversion
-                        global_cmd[msgs[0]](msgs[1])
-                    else:
-                        print("=== tools not support this cmd ")
-                else:
-                    pass
+This tool is modeled on MVN for C/C++ project, need install cmake tools/ Visual Studio
+usage: cmvn cmds [options] [optioninfo] 
 
-        except getopt.GetoptError:
-            print("cmd err please read help info : -h  gettools use info ")
+cmds:
+    create  projectinfo     projectinfo is Unique identification, for example: com.leetcode.demo
+    init                    run at project root path prepare for compile project 
+                            to get dependencies moduel files like  .h or .lib
+    build                   compile this project, generate executable file or .lib 
+    install                 Install the packaged project to the local warehouse for use by other projects
+    utest                   Run the tests using the appropriate unit testing framework, such as cppunit
+    ftest                   Run the tests in dir ftest, like integration testing
+    clean                   Remove all files generated from the last build
+    update destversion      destversion is version number to be upgraded, for example: 1.0.0
+    deploy                  Copy the final project package to the remote warehouse for sharing with other developers and projects
+    generate fileinfo       generate file, tools will analysis fileinfo by rules output template file
+
+options:
+    -v, --version           Displays the tool version number and modification time
+    -h, --help              Display help information for users to use tools
 
 
+'''
+
+def  init_cmd_function_pairs():
+    cppobject = CppProject('pom.xml')
+    global_cmd['init' ]   = cppobject.cppproject_init
+    global_cmd['build']   = cppobject.cppproject_build
+    global_cmd['install'] = cppobject.cppproject_install
+    global_cmd['utest']   = cppobject.cppproject_utest
+    global_cmd['ftest']   = cppobject.cppproject_ftest
+    global_cmd['clean']   = cppobject.cppproject_clean
+
+    global_cmd['create']  = create_project
+    global_cmd['update']  = cppobject.cppproject_updateversion
+
+
+def main():
+    #初始化命令和对应函数
+    init_cmd_function_pairs()
+    try:
+        if not global_cmd: return 
+        opts, msgs = getopt.getopt(sys.argv[1:], shortopts="vho:i:t:", longopts=["help", "version",'type'])
+        for opt, _ in opts:
+            if opt in ('-v','--version'):
+                print('\n'+'  '+__version__+' '+  __TIME__ + ' ' + __autor__ )
+            elif opt in ('-h','--help'):
+                print(Usage)
+            elif opt in ('-t','type'):
+                logging.info(" 预留功能待添加")
+            else:
+                print(Usage)
+        #解析单个命令
+        if len(msgs) == 1:
+            if msgs[0] in ('init','build','install', 'utest', 'ftest','clean'):
+                global_cmd[msgs[0]]()
+            elif msgs[0] in ('deploy'):
+                logging.info(" 预留命令 "+ msgs[0] )
+            else:
+                logging.error("Please read the user help information: -h or --help")
+        elif len(msgs) == 2:
+            if msgs[0] == 'create':
+                global_cmd[msgs[0]](msgs[1])
+            elif msgs[0] == 'update':
+                global_cmd[msgs[0]](msgs[1])
+            else:
+                logging.error("Please read the user help information: -h or --help")
+
+    except getopt.GetoptError:
+        logging.error("Please read the user help information: -h or --help")
 
 if __name__ == '__main__':
-    test = Main()
+    main()
+

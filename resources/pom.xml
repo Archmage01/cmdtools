@@ -5,6 +5,8 @@
 
     <header_prefix>app/ws</header_prefix>
     <header>protocol.h</header>
+    <header>protocol_test.h</header>
+    
     <lib>protocol</lib>
 
     <dependencies>

@@ -131,12 +131,20 @@ class MavenAutoTools(object):
         '''
         childpom = self.get_child_module_pom(moduel_info, version)
         moduel_info = moduel_info.split('.')
-        src_addr = join_change_path(default_libpath, moduel_info, version)
-        src_addr = join_change_path(src_addr, childpom.header)
+        src_addr_prefix = join_change_path(default_libpath, moduel_info, version)
+
         if not childpom.header: #无头文件
             return None
-        dest_addr = join_change_path(os.getcwd(),['include','%s'%(childpom.header[0])] )
-        return [src_addr, dest_addr ]
+        #遍历拉取所有头文件
+        for h in childpom.header:
+            src_addr  = os.path.join(src_addr_prefix, h) 
+            if not childpom.header_prefix:
+                dest_addr = join_change_path(os.getcwd(),['include','%s'%(h)] )
+            else:
+                temp = ['include'] + childpom.header_prefix + ['%s'%(h)]
+                dest_addr = join_change_path(os.getcwd(),temp )
+            copy_file(src_addr, dest_addr )
+
 
     def pull_transform_pom_path(self,moduel_info, version):
         '''
@@ -179,9 +187,17 @@ class MavenAutoTools(object):
         '''
         moduel_info = moduel_info.split('.')
         repository_addr = join_change_path(default_libpath, moduel_info, self.pom.version[0])
-        repository_addr = os.path.join(repository_addr,self.pom.header[0])
-        src_addr = join_change_path(os.getcwd(), ["src",'include',self.pom.header[0]])
-        return [repository_addr, src_addr]
+        if not self.pom.header:
+            logging.info(" "+ moduel_info + "no .h want to other moduel ")
+            return 
+        for h in self.pom.header:
+            dest_addr = os.path.join( repository_addr, h )
+            if not self.pom.header_prefix:
+                src_addr  = join_change_path( os.getcwd(), ["src",'include', h ])
+            else:
+                temp = ["src",'include'] + self.pom.header_prefix + [h]
+                src_addr  = join_change_path( os.getcwd(), temp )
+            copy_file(src_addr, dest_addr )
 
     def install_all_interface_files(self):
         '''
@@ -194,18 +210,17 @@ class MavenAutoTools(object):
             #print(ret)
             copy_file(ret[1], ret[0])
             #安装头文件
-            ret = self.push_header_to_repository(moduel_info, self.pom.version)
-            #print(ret)
-            copy_file(ret[1], ret[0])
+            self.push_header_to_repository(moduel_info, self.pom.version)
+
             #安装库文件
             ret = self.push_libs_to_repository(moduel_info, self.pom.version)
             #print(ret)
             copy_file(ret[1], ret[0])
-            logging.info('\n %s install files success  '%(moduel_info) )
-            logging.info(" moduel  version: %s"%(self.pom.version[0] ))
+            print('\n %s install files success  '%(moduel_info) )
+            print(" moduel  version: %s"%(self.pom.version[0] ))
         except:
-            logging.info('\n %s install files fail  '%(moduel_info) )
-            logging.info(" moduel  version: %s"%(self.pom.version[0] ))
+            print('\n %s install files fail  '%(moduel_info) )
+            print(" moduel  version: %s"%(self.pom.version[0] ))
 
 
 
@@ -213,7 +228,7 @@ class MavenAutoTools(object):
         '''
         获取远程/本地仓库中 .lib .h .pom文件
         '''
-        logging.info("\n======================dependencies=============================")
+        print("======================dependencies=============================")
         #遍历依赖的模块
         for key,value in self.pom.get_dependencies().items():
             temp = key.split('.')
@@ -223,22 +238,22 @@ class MavenAutoTools(object):
                 ret = self.pull_transform_pom_path(key, value )
                 copy_file(ret[0], ret[1])
                 # 安装头文件
-                if ret: ret = self.pull_transform_header_path(key,value )
-                copy_file(ret[0], ret[1])
+                self.pull_transform_header_path(key,value )
+
                 # 安装库文件
                 ret = self.pull_transform_libs_path(key,value )
                 if ret: copy_file(ret[0], ret[1])
-                logging.info(key.ljust(30,' ')+'version: %s'%(value))
+                print(key.ljust(30,' ')+'version: %s'%(value))
             else:  #获得最新版本
                 ret = self.pull_transform_pom_path(key, lastversion)
                 copy_file(ret[0], ret[1])
                 # 安装头文件
-                if ret:ret = self.pull_transform_header_path(key,lastversion)
-                copy_file(ret[0], ret[1])
+                self.pull_transform_header_path(key,lastversion)
+
                 if ret: ret = self.pull_transform_libs_path(key,lastversion )
                 copy_file(ret[0], ret[1])
-                logging.info(key.ljust(30,' ')+'version: %s'%(lastversion))
-        logging.info("======================dependencies=============================\n")
+                print(key.ljust(30,' ')+'version: %s'%(lastversion))
+        print("======================dependencies=============================\n")
 
 
 
@@ -269,7 +284,6 @@ def create_project(project_info:str):
 class  CppProject(object):
     def __init__(self,pom):
         self.rootpath = os.getcwd()
-        #self.pom = Pom(pom)
 
     def cppproject_init(self):
         new_dir = [r'projects/bdef', r'bin/Debug', r'include', r'pom']
@@ -391,12 +405,12 @@ class  CppProject(object):
         else:
             logging.info(" auto update version .cpp fail ")
 
-        logging.info("\n auto update version from: %s to %s  success "%( old_version,  dst_version ))
+        print("\n auto update version from: %s to %s  success "%( old_version,  dst_version ))
 
         
 
     def  cppproject_clean(self):
-        logging.info("clean project file")
+        print("clean project file")
         delfile(filepath=os.path.join(os.getcwd(),'bin'))
         delfile(filepath=os.path.join(os.getcwd(),'projects'))
         delfile(filepath=os.path.join(os.getcwd(),'pom'))
