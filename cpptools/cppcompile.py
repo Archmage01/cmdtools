@@ -6,7 +6,7 @@ import os,sys,getopt
 from   pub  import *
 from   cppproject import *
 
-__version__ = 'version: 1.0.2 '
+__version__ = 'version: 1.0.3 '
 __autor__   = 'author : Zero  '
 __TIME__    = 'time:2020-06-10'
 
@@ -28,6 +28,7 @@ cmds:
     update destversion      destversion is version number to be upgraded, for example: 1.0.0
     deploy                  Copy the final project package to the remote warehouse for sharing with other developers and projects
     generate fileinfo       generate file, tools will analysis fileinfo by rules output template file
+    verify                  verify version number consistency 
 
 options:
     -v, --version           Displays the tool version number and modification time
@@ -44,9 +45,12 @@ def  init_cmd_function_pairs():
     global_cmd['utest']   = cppobject.cppproject_utest
     global_cmd['ftest']   = cppobject.cppproject_ftest
     global_cmd['clean']   = cppobject.cppproject_clean
+    global_cmd['verify']   = cppobject.verify_version_nums
+
 
     global_cmd['create']  = create_project
     global_cmd['update']  = cppobject.cppproject_updateversion
+    global_cmd['generate']  = cppobject.auto_generate_file
 
 
 def main():
@@ -66,7 +70,7 @@ def main():
                 print(Usage)
         #解析单个命令
         if len(msgs) == 1:
-            if msgs[0] in ('init','build','install', 'utest', 'ftest','clean'):
+            if msgs[0] in ('init','build','install', 'utest', 'ftest','clean','verify'):
                 global_cmd[msgs[0]]()
             elif msgs[0] in ('deploy'):
                 logging.info(" 预留命令 "+ msgs[0] )
@@ -76,6 +80,8 @@ def main():
             if msgs[0] == 'create':
                 global_cmd[msgs[0]](msgs[1])
             elif msgs[0] == 'update':
+                global_cmd[msgs[0]](msgs[1])
+            elif msgs[0] == 'generate':
                 global_cmd[msgs[0]](msgs[1])
             else:
                 logging.error("Please read the user help information: -h or --help")

@@ -417,7 +417,61 @@ class  CppProject(object):
         delfile(filepath=os.path.join(os.getcwd(),'lib'))
         delfile(filepath=os.path.join(os.getcwd(),'include'))
 
-
+    
+    def auto_generate_file(self,filename):
+        logging.info(filename)
+        if filename.endswith('.h'):
+            filename = filename.split('.')[0]
+            create_file(r"src/include/%s.h" % filename, tp.hhp_template % ({"prjname": filename.upper()}))
+        elif filename.endswith('.cpp'):
+            filename = filename.split('.')[0]
+            create_file(r"src/test_cppunit/%s_test.cpp" % (filename), (tp.cppunit_testfile % ({"prjname": filename})))
+        else:
+            pass
+    
+    def verify_version_nums(self):
+        print("")
+        #pom.xml 版本号
+        pom = Pom('pom.xml')
+        print( "pom.xml".ljust(30,' ')+'version: %s'%(pom.version[0]))
+        #.c 版本号
+        pomfile= os.path.join(os.getcwd(),'src','main','ver_%s.c'%(pom.artifactId[0]))
+        ret = open_file(pomfile)
+        if ret:
+            content, charset = ret[0],ret[1]
+            majorpattern = re.compile(r'\/\*- major\*\/\s{0,5}\d{1,3},')
+            major = re.search(r'\d{1,3}', majorpattern.search(content).group())
+            if major: major = major.group()
+            minorpattern = re.compile(r'\/\*- minor\*\/\s{0,5}\d{1,3},')
+            minor = re.search(r'\d{1,3}', minorpattern.search(content).group())
+            if minor: minor = minor.group()
+            patchpattern = re.compile(r'\/\*- patch\*\/\s{0,5}\d{1,3},')
+            patch = re.search(r'\d{1,3}', patchpattern.search(content).group())
+            if patch: patch = patch.group()
+        cversion = major+"."+minor+"."+patch
+        temp = "ver_%s.c "%(pom.artifactId[0])
+        print( temp.ljust(30,' ')+'version: %s'%(cversion))
+        #.cpp 版本号
+        utestfile= os.path.join(os.getcwd(),'src','test_cppunit','%s_test.cpp'%(pom.artifactId[0]))
+        ret = open_file(utestfile)
+        if ret:
+            content, charset = ret[0],ret[1]
+            majorpattern = re.compile(r'CPPUNIT_EASSERT\(\s?\d{1,3},\s?ver_%s.major'%(pom.artifactId[0]))
+            major = re.search(r'\d{1,3}', majorpattern.search(content).group())
+            if major: major = major.group()
+            minorpattern = re.compile(r'CPPUNIT_EASSERT\(\s?\d{1,3},\s?ver_%s.minor'%(pom.artifactId[0]) )
+            minor = re.search(r'\d{1,3}', minorpattern.search(content).group())
+            if minor: minor = minor.group()
+            patchpattern = re.compile(r'CPPUNIT_EASSERT\(\s?\d{1,3},\s?ver_%s.patch'%(pom.artifactId[0]) )
+            patch = re.search(r'\d{1,3}', patchpattern.search(content).group())
+            if patch: patch = patch.group()
+            utestversion = major+"."+minor+"."+patch
+        temp = "%s_test.cpp "%(pom.artifactId[0])
+        print( temp.ljust(30,' ')+'version: %s'%(utestversion))
+        if pom.version[0] == utestversion and utestversion == cversion:
+            print("校验版本号一致".center(30,"="))
+        else:
+            print(" 版本号不一致请检查 ".center(30,"="))
 
 if __name__ == '__main__':
     test = CppProject('pom.xml')
