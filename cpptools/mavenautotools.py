@@ -30,10 +30,11 @@ class MavenAutoTools(object):
         else:
             return None
 
-    def  get_child_module_pom(self, unique_project, version):
+    def  get_child_module_pom(self, unique_project, version, flag ="pull"):
         '''
         解析子模块pom.xml文件
         '''
+        if 'push' == flag: return Pom('pom.xml')
         unique_project = unique_project.split('.')
         pom_file = default_libpath
         for c in unique_project:
@@ -50,7 +51,7 @@ class MavenAutoTools(object):
         :param  flag    :          pull    push
         return: {'project': None , 'depository':None }
         '''       
-        childpom       = self.get_child_module_pom( unique_project, version)
+        childpom       = self.get_child_module_pom( unique_project, version, flag)
         ret =  {'project': None , 'depository':None }
         if not childpom.lib: #无库文件
             return None
@@ -65,11 +66,11 @@ class MavenAutoTools(object):
             depository = os.path.join(depository, version ,childpom.lib[0]+'.lib' )
         elif "Linux" == platform:
             if "pull" == flag:
-                project    = os.path.join(os.getcwd(), 'lib','Linux','lib%s.a'%(childpom.lib[0]) )
+                project    = os.path.join(os.getcwd(), 'lib','ARMCC','lib%s.a'%(childpom.lib[0]) )
             else:
-                project    = os.path.join(os.getcwd(), 'lib', 'lib%s.a'%(childpom.lib[0]) )
+                project    = os.path.join(os.getcwd(), 'lib',"ARMCC",'lib%s.a'%(childpom.lib[0]) )
             depository = os.path.join(default_libpath,unique_project[0],unique_project[1],unique_project[2])
-            depository = os.path.join(depository, version , childpom.lib[0]+'.a' )
+            depository = os.path.join(depository, version , 'lib%s.a'%(childpom.lib[0])  )
         else:
             pass
         ret['project'], ret['depository'] = project, depository
@@ -82,7 +83,7 @@ class MavenAutoTools(object):
         :param  flag    :          pull    push
         return: {'project': None , 'depository':None }
         '''        
-        childpom       = self.get_child_module_pom( unique_project, version)
+        childpom       = self.get_child_module_pom( unique_project, version,flag )
         temp = unique_project
         ret =  {'project': None , 'depository':None }
         if not childpom.lib: #无库文件
@@ -100,7 +101,7 @@ class MavenAutoTools(object):
         return ret 
 
     def transform_header_absolute_address(self, unique_project, version, flag ="pull"):
-        childpom = self.get_child_module_pom(unique_project, version)
+        childpom = self.get_child_module_pom(unique_project, version, flag)
         unique_project =  unique_project.split('.')
         if not childpom.header: return None #无需处理头文件
         if  'pull' == flag:
@@ -125,14 +126,14 @@ class MavenAutoTools(object):
             for header in childpom.header:
                 depository = os.path.join( depository_prefix, header )
                 if not childpom.header_prefix:
-                    project = os.path.join(os.getcwd(),'src' 'include', header )
+                    project = os.path.join(os.getcwd(),'src','include', header )
                 else:
                     project = os.path.join( os.getcwd(), 'src','include' )
                     for item in childpom.header_prefix:
                         project = os.path.join(project, item )
                     project = os.path.join(project, header )
                 #copy
-                copy_file( depository, project )
+                copy_file( project, depository )
         return 0 
 
     def install_all_interface_files(self, platform="Windows"):
@@ -152,7 +153,9 @@ class MavenAutoTools(object):
                 # .a
                 ret = self.transform_lib_absolute_address(moduel_info, self.pom.version[0], platform="Linux",flag='push' )
                 copy_file(ret['project'], ret['depository'])
-        except:
+            print('\n %s install files success  '%(moduel_info) )
+            print(" moduel  version: %s"%(self.pom.version[0] ))
+        except Exception as e:
             print('\n %s install files fail  '%(moduel_info) )
             print(" moduel  version: %s"%(self.pom.version[0] ))
 
@@ -168,10 +171,10 @@ class MavenAutoTools(object):
                 # header
                 ret = self.transform_header_absolute_address( key, value, flag='pull' )
                 if "Windows" == platform:
-                    ret = self.transform_lib_absolute_address( key, value, platform="Windows",flag='push' )
+                    ret = self.transform_lib_absolute_address( key, value, platform="Windows",flag='pull' )
                     copy_file(ret['depository'], ret['project'])
                 else:
-                    ret = self.transform_lib_absolute_address( key, value, platform="Linux",flag='push' )
+                    ret = self.transform_lib_absolute_address( key, value, platform="Linux",flag='pull' )
                     copy_file(ret['depository'], ret['project'])
                 print(key.ljust(30,' ')+'version: %s'%(value))
             else:
@@ -181,10 +184,10 @@ class MavenAutoTools(object):
                 # header
                 ret = self.transform_header_absolute_address( key, lastversion, flag='pull' )
                 if "Windows" == platform:
-                    ret = self.transform_lib_absolute_address( key, lastversion, platform="Windows",flag='push' )
+                    ret = self.transform_lib_absolute_address( key, lastversion, platform="Windows",flag='pull' )
                     copy_file(ret['depository'], ret['project'])
                 else:
-                    ret = self.transform_lib_absolute_address( key, lastversion, platform="Linux",flag='push' )
+                    ret = self.transform_lib_absolute_address( key, lastversion, platform="Linux",flag='pull' )
                     copy_file(ret['depository'], ret['project'])
                 print(key.ljust(30,' ')+'version: %s'%(lastversion))
         print("======================dependencies=============================\n")

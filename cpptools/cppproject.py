@@ -35,6 +35,7 @@ def create_project(project_info:str):
     create_file(r"pom.xml", tp.pom_template % ({"groupId": groupId, "prjname": moduelname}))
     # arm cmake 
     create_file(r"cmake/arm.cmake", tp.armcmake_template)
+    create_file(r"cmake/common.cmake", tp.common_template)
 
 
 

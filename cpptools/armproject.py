@@ -26,7 +26,8 @@ class  ArmProject(object):
         if os.path.exists("pom.xml"):
             os.chdir(self.rootpath)
             ### 拉取依赖库 及头文件
-
+            pom = MavenAutoTools('pom.xml')
+            pom.repo_dependencys_file(platform="Linux")
             ######################
             os.chdir(r'projects/bdef')
             cmake = self.rootpath + '\\cmake\\arm.cmake'
@@ -40,6 +41,7 @@ class  ArmProject(object):
 
     def arm_project_build(self):
         logging.info("arm_project_build")
+        os.system(r'cmake --build projects/bdef')
 
     def arm_project_install(self):
         if os.path.exists("pom.xml"):

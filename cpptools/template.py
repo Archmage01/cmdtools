@@ -42,15 +42,25 @@ SET( ROOTPATH ${CMAKE_SOURCE_DIR})
 aux_source_directory(main   SRC )
 aux_source_directory(test_cppunit  TESTSRC )
 
+IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    MESSAGE(STATUS " current platform: Windows ")
+    SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
+    MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    MESSAGE( STATUS "current platform: Linux ")
+    SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib/ARMCC) 
+    MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
+ELSE ()
+    MESSAGE("=== other platform: ${CMAKE_SYSTEM_NAME} ")
+ENDIF()
 
-SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
+#SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
 SET(EXECUTABLE_OUTPUT_PATH ${root}/bin/Debug) 
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${ROOTPATH}/bin/Debug ) 
-MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
 MESSAGE(STATUS "executable_output_path: " ${EXECUTABLE_OUTPUT_PATH} )
 MESSAGE(STATUS "cmake_runtime_output_directory_debug: " ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG} )
 
-#include(${ROOTPATH}/excmake/global.cmake)
+include(${ROOTPATH}/cmake/common.cmake)
 include_directories(${ROOTPATH}/include)
 include_directories(${ROOTPATH}/src)
 link_directories(${ROOTPATH}/lib/Windows)
@@ -329,4 +339,25 @@ message(${CMAKE_C_COMPILER})
 message(${CMAKE_ASM_COMPILER})
 message(${CMAKE_LINKER})
 message("===================================")
+'''
+
+common_template = \
+'''
+#  common cmake file: all define  functions  
+
+function(set_output_path)
+    #set(CMAKE_SYSTEM_NAME ${platform} )
+    IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+        MESSAGE("=== current platform: Windows ")
+        SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
+        MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
+    ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+        MESSAGE("=== current platform: Linux ")
+        SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib/ARMCC) 
+        MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
+    ELSE ()
+        MESSAGE("=== other platform: ${CMAKE_SYSTEM_NAME} ")
+    ENDIF()
+endfunction(set_output_path)
+
 '''
