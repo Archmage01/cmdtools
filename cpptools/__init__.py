@@ -18,7 +18,12 @@ version 1.0.3
     1  支持校验版本号: pom.xml  单元测试  版本源码 是否一致
     2  模板生成头文件, 单元测试文件
 version 1.0.4
-    待考虑
+    1 支持交叉编译ARM, 需要安装keil和mingw(mingw工程 arm编译工具链)
+    2 arm平台生成静态库.a 和 烧入bin文件(cmake编译链中指定arm平台参数等)        
+    3 支持命令 .elf 生成 .bin文件
+    
+version 2.0.0
+    待添加
     
 
 '''

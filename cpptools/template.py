@@ -300,3 +300,33 @@ pom_template = \
     </dependencies>
 </project>
 """
+
+armcmake_template = \
+'''
+###########################################
+#   armcc cmake cross toolchain file      #
+###########################################
+# minimum  cmake  version  
+cmake_minimum_required(VERSION 3.7)
+
+SET(CMAKE_SYSTEM_NAME Linux)
+SET(CMAKE_SYSTEM_PROCESSOR arm)
+
+SET(ARMCC_ROOT  "D:/myprogram/keil5/ARM/ARMCC")
+SET(CMAKE_C_COMPILER  ${ARMCC_ROOT}/bin/armcc.exe)
+SET(CMAKE_CXX_COMPILER  ${CMAKE_C_COMPILER})
+SET(CMAKE_ASM_COMPILER ${ARMCC_ROOT}/bin/armasm.exe)
+SET(CMAKE_LINKER ${ARMCC_ROOT}/bin/armlink.exe )
+SET(CMAKE_AR ${ARMCC_ROOT}/bin/armar.exe)
+SET(INIT_CP_FLAGS "--apcs=interwork -c --cpu=cortex-a9 -O0 --debug -DVFP_DREG=32 --fpu=vfpv3 --c90 -g")
+
+message("===================================")
+
+message(${CMAKE_SYSTEM_NAME})
+message(${CMAKE_SYSTEM_PROCESSOR})
+message(${ARMCC_ROOT})
+message(${CMAKE_C_COMPILER})
+message(${CMAKE_ASM_COMPILER})
+message(${CMAKE_LINKER})
+message("===================================")
+'''

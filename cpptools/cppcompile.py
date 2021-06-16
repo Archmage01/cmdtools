@@ -5,15 +5,16 @@
 import os,sys,getopt
 from   pub  import *
 from   cppproject import *
+from   armproject import *
 
-__version__ = 'version: 1.0.3 '
+__version__ = 'version: 1.0.4 '
 __autor__   = 'author : Zero  '
 __TIME__    = 'time:2020-06-10'
 
 Usage = \
 '''
 
-This tool is modeled on MVN for C/C++ project, need install cmake tools/ Visual Studio
+This tool is modeled on MVN for C/C++ project, need install cmake tools/ Visual Studio/ keil / mingw
 usage: cmvn cmds [options] [optioninfo] 
 
 cmds:
@@ -30,6 +31,10 @@ cmds:
     generate fileinfo       generate file, tools will analysis fileinfo by rules output template file
     verify                  verify version number consistency 
 
+    arminit                 Generators MinGW Makefiles 
+    armbuild                keil  build  project 
+    arminstall              Install the packaged project to the local warehouse for use by other projects(arm)
+    elf2bin                 from  change .elf to .bin  
 options:
     -v, --version           Displays the tool version number and modification time
     -h, --help              Display help information for users to use tools
@@ -51,6 +56,12 @@ def  init_cmd_function_pairs():
     global_cmd['create']  = create_project
     global_cmd['update']  = cppobject.cppproject_updateversion
     global_cmd['generate']  = cppobject.auto_generate_file
+    #交叉编译  arm
+    armproject = ArmProject()
+    global_cmd['arminit' ]     = armproject.arm_project_init
+    global_cmd['armbuild']     = armproject.arm_project_build
+    global_cmd['arminstall']   = armproject.arm_project_install
+    global_cmd['elf2bin']        = armproject.arm_project_elf2bin
 
 
 def main():
@@ -71,6 +82,8 @@ def main():
         #解析单个命令
         if len(msgs) == 1:
             if msgs[0] in ('init','build','install', 'utest', 'ftest','clean','verify'):
+                global_cmd[msgs[0]]()
+            elif msgs[0] in ('arminit','armbuild','arminstall','elf2bin'):
                 global_cmd[msgs[0]]()
             elif msgs[0] in ('deploy'):
                 logging.info(" 预留命令 "+ msgs[0] )

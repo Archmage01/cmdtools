@@ -63,6 +63,13 @@ if __name__ == "__main__":
         #
         os.chdir(roottop)
         shutil.copy2('cmvn.zip',global_path+'\\'+'cmvn.zip' )
+        #
+        os.chdir(global_path)
+        zip_file = zipfile.ZipFile('cmvn.zip')
+        zip_list = zip_file.namelist()
+        for f in zip_list:
+            zip_file.extract(f, os.getcwd()) # 循环解压文件到指定目录
+        zip_file.close() # 关闭文件，必须有，释放内存
     
     else:
         print("目录 cpptools/dist/cppcompile 不存在 ")

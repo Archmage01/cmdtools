@@ -94,24 +94,6 @@ def run_cmd(cmds, src_path="", back_path=""):
     pass
 
 
-def get_max_version(groupid_artifactId):
-    '''
-    获得模块最新版本(最大版本号默认)
-    '''
-    dst_path =  os.path.join(default_libpath, groupid_artifactId.replace(".", "\\"))
-    try:
-        # version_dir  = os.path.dirname(dst_path)  dst_path父目录
-        # print(version_dir)
-        versions = os.listdir(dst_path)
-        if not versions:
-            logging.info("%s  not exist version dir" % (groupid_artifactId))
-        else:
-            return max(versions)
-    except Exception as e:
-        logging.info("%s  not exist dir" % (groupid_artifactId))
-    return None
-
-
 def is_same_file(filename, fulldstname):
     """
      @brief is_same_file 首先判断修改大小，再判断修改时间，若都一致，初步判断一致
@@ -145,15 +127,83 @@ def delfile(filepath=None, file=None):
     except  Exception as e:
         print(e)
 
+def join_change_path(prefix_path:str, mb_list, max_version=None ):
+    '''
+    转化路径 拼接路径
+    :param prefix_path:  默认libpath
+    :param mb_list    :  artifactId, groupid
+    :param max_version:  None 默认版本  other 实际版本号
+    :return:
+    '''
+    ret = os.path.join(prefix_path,*mb_list)
+    if max_version:
+        ret = os.path.join(ret,max_version)
+    return  ret
+
+def is_dirs_exists(dirs, createdir=None):
+    '''
+    判断目录是否存在
+    :param dirs     :  目录
+    :param createdir:  None不新建 True:若目录不存在则新建目录
+    :return: True 目录存在   False 目录不存在
+    '''
+    if os.path.isdir(dirs):
+        return True
+    else:
+        if createdir:
+            os.makedirs(dirs)
+            return True
+    return False
+
+
+def is_file_exists(filespath, createdir=None):
+    '''
+    判断目录下文件是否存在
+    :param filespath:  文件绝对路径
+    :param createdir:  None不新建 True:若目录不存在则新建目录
+    :return : True 文件存在   False 文件不存在
+    '''
+    if os.path.isfile(filespath):
+        return True
+    else:
+        if platform.system() == "Windows":
+            if createdir:
+                path = '\\'.join(filespath.split('\\')[0:-1:])
+                is_dirs_exists(path,True)
+        else:
+            if createdir:
+                path = '/'.join(filespath.split('\\')[0:-1:])
+                is_dirs_exists(path,True)
+    return False
+
+def copy_file(srcfile, dstfile):
+    '''
+    复制文件
+    :param srcfile: 源文件地址
+    :param dstfile: 目的地址
+    '''
+    if True != is_file_exists(srcfile):
+        logging.error("err:  src file not exists %s"%(srcfile))
+        return False
+    else:
+        is_file_exists(dstfile,createdir=True) #目录不存在就创建
+        try:
+            shutil.copy2(srcfile, dstfile)
+            return True
+        except:
+            logging.error("copy fail: %s to  %s" % (srcfile, dstfile))
+            return False
+            
+def path_join(path,  *paths):
+    ret = os.path.join(path,*paths)
+    if platform.system() != "Windows":
+        ret = ret.replace('\\', '/')
+    return ret
 
 
 global_cmd = {}
 
 
 if __name__ == "__main__":
-    print(os.path.join(os.getcwd(),"lib", default_sys_prefix))
-    print(os.path.join(os.getcwd(),default_header_prefix, "init.h"))
-    print(os.path.join(os.getcwd(),default_lib_prefix, "init.lib"))
-    #os.chdir(os.path.join(default_libpath))
-    print(os.getcwd())
-    print(get_max_version('lrts.com.demo'))
+    os.path.join(path)
+    pass
