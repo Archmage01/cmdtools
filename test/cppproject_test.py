@@ -30,14 +30,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_create_project(self):
         pass
-        # create_project("com.leetcode.demo")
-        # self.assertEqual(True, os.path.exists('pom.xml'))
-        # self.assertEqual(True, os.path.exists('readme.md'))
-        # self.assertEqual(True, os.path.exists('CMakeLists.txt'))
-        # delfile(filepath=os.path.join(os.getcwd(),'projects'))
-        # delfile(filepath=os.path.join(os.getcwd(),'pom'))
-        # delfile(filepath=os.path.join(os.getcwd(),'lib'))
-        # delfile(filepath=os.path.join(os.getcwd(),'include'))
+
 
     @unittest.skip('do not run this case')
     def test_join_change_path(self):

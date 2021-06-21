@@ -52,6 +52,22 @@ class  ArmProject(object):
             logging.info("pom.xml not exist  install fail ")
 
     def arm_project_elf2bin(self):
-        logging.info("arm_project_tobin")
-
-
+        pom = Pom('pom.xml')
+        debug_dir = os.path.join(os.getcwd(),'bin','Debug')
+        if os.path.exists(debug_dir):
+            os.chdir(debug_dir)
+            for filename in os.listdir(debug_dir):
+                #find .elf
+                if filename.endswith('.elf'):
+                    prefix = filename.split('.elf')[0]
+                    tobin = "%s.bin"%(pom.artifactId[0])
+                    tohex = "%s.hex"%(pom.artifactId[0])
+                    try:
+                        os.system("fromelf --bin --output=%s %s"%(tobin, filename ))
+                        os.system("fromelf --vhx --output=%s %s"%(tohex, filename ))
+                        print("\n create .bin or hex success ")
+                    except:
+                        print("\n create .bin or hex fail ")
+        else:
+            logging.info(" %s not exist please check ..."%(debug_dir))
+        os.chdir(self.rootpath) 

@@ -29,87 +29,112 @@ endif()
 
 src_leve_cmake = \
 """\
-# Auto CMakeLists.txt: frame  with  cppunit  use for lintcode/leetcode 
+# cmvn tools auto generate CMakeLists.txt
 # minimum  cmake  version  
 cmake_minimum_required(VERSION 3.7)
 
 # top  project name
-SET(mname  %(prjname)s  )
-SET( cppunit_test  cppunit_%(prjname)s_test )
+SET( mname  %(prjname)s  )
 SET( ROOTPATH ${CMAKE_SOURCE_DIR})
 
 # defining common source variables
 aux_source_directory(main   SRC )
-aux_source_directory(test_cppunit  TESTSRC )
 
+
+#SET PROJECT OUTPUT DIR 
+SET(EXECUTABLE_OUTPUT_PATH ${ROOTPATH}/bin/Debug)
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${ROOTPATH}/bin/Debug ) 
+
+
+#PATH OR FILE ADD
+IF ( EXISTS ${ROOTPATH}/cmake/common.cmake)
+    include(${ROOTPATH}/cmake/common.cmake)
+ENDIF()
+
+include_directories(${ROOTPATH}/include)
+include_directories(${ROOTPATH}/src)
+include_directories(${ROOTPATH}/src/include)
+#link_directories(${ROOTPATH}/lib/Windows)
+
+
+#FUNCTION  
+FUNCTION( target_ftest project_name  )
+    IF (EXISTS ${ROOTPATH}/src/ftest)
+        AUX_SOURCE_DIRECTORY(ftest  FTESTSRC )
+        #link_directories(${ROOTPATH}/lib/Windows)
+        ADD_EXECUTABLE( ftest_${project_name}  ${SRC}  ${FTESTSRC}  )
+        #target_link_libraries(
+        #   cppunit_${project_name}   
+        #    
+        #)
+    ELSE()
+        MESSAGE(STATUS " dir ftest not exist ")
+    ENDIF()
+ENDFUNCTION()
+
+FUNCTION( target_cppunit project_name  )
+    if (EXISTS ${ROOTPATH}/src/test_cppunit)
+        AUX_SOURCE_DIRECTORY(test_cppunit  TESTSRC )
+        add_definitions(-DCPPUNIT_TEST)
+        link_directories(${ROOTPATH}/lib/Windows)
+        add_executable( cppunit_${project_name}  ${SRC}  ${TESTSRC}  )
+        target_link_libraries(
+            cppunit_${project_name}   
+            cppunit
+        )
+    else()
+        message(STATUS " dir ftest not exist ")
+    endif()
+ENDFUNCTION()
+
+FUNCTION( print_project_info )
+    message("=============================================")
+    message(" CMAKE_SYSTEM_NAME   : " ${CMAKE_SYSTEM_NAME} " " ${CMAKE_SYSTEM_PROCESSOR} )
+    message(" CMAKE_C_COMPILER    : " ${CMAKE_C_COMPILER} )
+    message(" CMAKE_CXX_COMPILER  : " ${CMAKE_CXX_COMPILER} )
+    message(" CMAKE_ASM_COMPILER  : " ${CMAKE_ASM_COMPILER} )
+    message(" CMAKE_C_FLAGS       : " ${CMAKE_C_FLAGS} )
+    message(" CMAKE_CXX_FLAGS     : " ${CMAKE_CXX_FLAGS} )
+    message(" CMAKE_C_FLAGS_INIT  : " ${CMAKE_C_FLAGS_INIT} )
+    message(" CMAKE_CXX_FLAGS_INIT: " ${CMAKE_CXX_FLAGS_INIT} )
+    message(" CMAKE_ASM_FLAGS_INIT: " ${CMAKE_ASM_FLAGS_INIT} )
+
+    message(" EXECUTABLE_OUTPUT_PATH: " ${EXECUTABLE_OUTPUT_PATH} )
+    message(" LIBRARY_OUTPUT_PATH   : " ${LIBRARY_OUTPUT_PATH} )
+    message("=============================================")
+ENDFUNCTION()
+
+# Widows Visual Studio PROJECT
 IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
     MESSAGE(STATUS " current platform: Windows ")
     SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
-    MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
+
+    #WINDOWS PC ADD CPPUINT FRAME
+    target_cppunit( ${mname} )
+# ARM MINGW PROJECT
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux") 
     MESSAGE( STATUS "current platform: Linux ")
     SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib/ARMCC) 
-    MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
+    SET(CMAKE_ASM_FLAGS_INIT  "--cpu Cortex-M3 -g --apcs=interwork --pd \\"__MICROLIB SETA 1\\" ")
+    SET(CMAKE_C_FLAGS_INIT    "--c99 --gnu -c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections")
+    SET(CMAKE_CXX_FLAGS_INIT  "${CMAKE_C_FLAGS_INIT}")
 ELSE ()
     MESSAGE("=== other platform: ${CMAKE_SYSTEM_NAME} ")
 ENDIF()
 
-#SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
-SET(EXECUTABLE_OUTPUT_PATH ${root}/bin/Debug) 
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${ROOTPATH}/bin/Debug ) 
-MESSAGE(STATUS "executable_output_path: " ${EXECUTABLE_OUTPUT_PATH} )
-MESSAGE(STATUS "cmake_runtime_output_directory_debug: " ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG} )
-
-include(${ROOTPATH}/cmake/common.cmake)
-include_directories(${ROOTPATH}/include)
-include_directories(${ROOTPATH}/src)
-link_directories(${ROOTPATH}/lib/Windows)
-
-message(">>>> cppbuilder init start:")
-if(SRC)
-    #add_executable( t_${mname}  ${SRC} )
-    ADD_LIBRARY( ${mname}  ${SRC})  
-
-    #ADD_LIBRARY( ${mname}  SHARED ${SRC})   
-    message("project src file show: ")
-        foreach(_var ${SRC})
-            message("   ${_var}")
-        endforeach()
-    message(" ")
-endif(SRC)
-    
-    
-#cppunit  test for  moduel
-if(TESTSRC)
-    add_definitions(-DCPPUNIT_TEST)
-    add_executable( ${cppunit_test}  ${SRC}  ${TESTSRC}  )
-        message("cppunit test file show: ")
-        foreach(_var ${TESTSRC})
-            message("==file " "   ${_var}")
-        endforeach()
-    target_link_libraries(
-        ${cppunit_test}  
-        cppunit
-    )
-endif(TESTSRC)
+#TARGET OR LIB 
+IF (SRC)
+    ADD_LIBRARY( ${mname}  ${SRC} )  
+    MESSAGE(STATUS "project src file: ")
+    foreach(_var ${SRC})
+        MESSAGE("   ${_var}")
+    endforeach()
+ENDIF(SRC)
 
 
-function(target_ftest project_name  )
-    if (EXISTS ${ROOTPATH}/src/ftest)
-        aux_source_directory(ftest  FTESTSRC )
-        add_executable( ftest_${project_name}  ${SRC}  ${FTESTSRC}  )
-        foreach(_var ${FTESTSRC})
-            message("==file " "   ${_var}")
-        endforeach()
-    else()
-        message(STATUS " dir ftest not exist ")
-    endif()
-endfunction()
+target_ftest( ${mname} )
+print_project_info()
 
-target_ftest(${mname})
-
-
-message(">>>> cppbuilder init end <<<<")
 """
 
 leetcode_cmake = \
@@ -206,7 +231,7 @@ void %(prjname)s_test::%(prjname)s_test_ver()
 
     CPPUNIT_EASSERT( 0, ver_%(prjname)s.major ); 
     CPPUNIT_EASSERT( 0, ver_%(prjname)s.minor ); 
-    CPPUNIT_EASSERT( 2, ver_%(prjname)s.patch ); 
+    CPPUNIT_EASSERT( 1, ver_%(prjname)s.patch ); 
 }
 
 //将TestSuite注册到一个名为alltest的TestSuite中
@@ -238,17 +263,8 @@ const module_info_t ver_%(prjname)s=
 
 cppfile_template_lintcode = \
 """\
-#include <iostream>
+#include <stdio.h>
 
-using  namespace  std ;
-
-class Solution {
-public:
-    void test()
-    {
-
-    }
-};
 
 
 int  main(int argc,char **argv)
@@ -330,15 +346,6 @@ SET(CMAKE_LINKER ${ARMCC_ROOT}/bin/armlink.exe )
 SET(CMAKE_AR ${ARMCC_ROOT}/bin/armar.exe)
 SET(INIT_CP_FLAGS "--apcs=interwork -c --cpu=cortex-a9 -O0 --debug -DVFP_DREG=32 --fpu=vfpv3 --c90 -g")
 
-message("===================================")
-
-message(${CMAKE_SYSTEM_NAME})
-message(${CMAKE_SYSTEM_PROCESSOR})
-message(${ARMCC_ROOT})
-message(${CMAKE_C_COMPILER})
-message(${CMAKE_ASM_COMPILER})
-message(${CMAKE_LINKER})
-message("===================================")
 '''
 
 common_template = \

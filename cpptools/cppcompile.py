@@ -7,14 +7,14 @@ from   pub  import *
 from   cppproject import *
 from   armproject import *
 
-__version__ = 'version: 1.0.4 '
+__version__ = 'version: 2.0.0 '
 __autor__   = 'author : Zero  '
 __TIME__    = 'time:2020-06-10'
 
 Usage = \
 '''
 
-This tool is modeled on MVN for C/C++ project, need install cmake tools/ Visual Studio/ keil / mingw
+This tool is modeled on MVN for C/C++ project, need install cmake/Visual Studio/keil/mingw
 usage: cmvn cmds [options] [optioninfo] 
 
 cmds:
@@ -34,7 +34,8 @@ cmds:
     arminit                 Generators MinGW Makefiles 
     armbuild                keil  build  project 
     arminstall              Install the packaged project to the local warehouse for use by other projects(arm)
-    elf2bin                 from  change .elf to .bin  
+    elf2bin                 from  change .elf to .bin  .hex and so on 
+
 options:
     -v, --version           Displays the tool version number and modification time
     -h, --help              Display help information for users to use tools

@@ -30,7 +30,7 @@ def create_project(project_info:str):
     create_file(r"src/main/ver_%s.c" % moduelname, tp.ver_module_template%({"prjname": moduelname}))
     create_file(r"src/include/%s.h" % moduelname, tp.hhp_template % ({"prjname": moduelname.upper()}))
     # ftest
-    create_file(r"src/ftest/ftest.cpp", tp.cppfile_template_lintcode)
+    create_file(r"src/ftest/ftest.c", tp.cppfile_template_lintcode)
     create_file(r"readme.md", tp.readme_template)
     create_file(r"pom.xml", tp.pom_template % ({"groupId": groupId, "prjname": moduelname}))
     # arm cmake 
@@ -168,12 +168,9 @@ class  CppProject(object):
         
 
     def  cppproject_clean(self):
-        print("clean project file")
-        delfile(filepath=os.path.join(os.getcwd(),'bin'))
-        delfile(filepath=os.path.join(os.getcwd(),'projects'))
-        delfile(filepath=os.path.join(os.getcwd(),'pom'))
-        delfile(filepath=os.path.join(os.getcwd(),'lib'))
-        delfile(filepath=os.path.join(os.getcwd(),'include'))
+        for c in ['bin','projects','pom','lib','include']:
+            delall(c)
+        print("\n clean project  temp generate file or dirs")
 
     
     def auto_generate_file(self,filename):

@@ -108,24 +108,16 @@ def is_same_file(filename, fulldstname):
             ret = True
     return ret
 
-
-def delfile(filepath=None, file=None):
-    print(filepath)
+def delall(abpath):
     try:
-        del_list = os.listdir(filepath)
-        for f in del_list:
-            file_path = os.path.join(filepath, f)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        if os.path.exists(filepath):
-            shutil.rmtree(filepath)
-        if  file:
-            if True == os.path.isfile(file):
-                os.remove(file)
-    except  Exception as e:
-        print(e)
+        if os.path.exists(abpath):
+            if os.path.isdir(abpath):
+                shutil.rmtree(abpath)
+            else:
+                os.remove(abpath)
+    except Exception as e:
+        print("del dir=%s  err"%(abpath))
+        
 
 def join_change_path(prefix_path:str, mb_list, max_version=None ):
     '''

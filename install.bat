@@ -1,1 +1,1 @@
-python  package2exe.py
+ python  package2exe.py
