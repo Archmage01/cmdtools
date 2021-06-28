@@ -36,6 +36,8 @@ cmake_minimum_required(VERSION 3.7)
 # top  project name
 SET( mname  %(prjname)s  )
 SET( ROOTPATH ${CMAKE_SOURCE_DIR})
+set( USERDEFINE_INCLUDE  "")        #user add include path 
+set( USERDEFINE_ALL_LIBS "")        #user add .a or .lib files
 
 # defining common source variables
 aux_source_directory(main   SRC )
@@ -51,13 +53,48 @@ IF ( EXISTS ${ROOTPATH}/cmake/common.cmake)
     include(${ROOTPATH}/cmake/common.cmake)
 ENDIF()
 
-include_directories(${ROOTPATH}/include)
-include_directories(${ROOTPATH}/src)
-include_directories(${ROOTPATH}/src/include)
-#link_directories(${ROOTPATH}/lib/Windows)
+#user add header dirs 
+list( APPEND USERDEFINE_INCLUDE "${ROOTPATH}/include" )
+list( APPEND USERDEFINE_INCLUDE "${ROOTPATH}/src/include" )
+if(USERDEFINE_INCLUDE)
+    foreach(_include  ${USERDEFINE_INCLUDE} )
+        message("==user header dir: " ${_include})
+        include_directories(${_include})
+    endforeach()
+endif()
+
+#add libs
+#set( USERDEFINE_ALL_LIBS cppunit init build  )
+
+#set output lib
+ADD_LIBRARY( ${mname}  ${SRC} )
 
 
-#FUNCTION  
+# Widows Visual Studio PROJECT
+IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
+    if(USERDEFINE_ALL_LIBS)
+        foreach(_libs  ${USERDEFINE_ALL_LIBS} )
+            message("==add libs: " ${_libs})
+            include_directories(${_libs})
+        endforeach()
+    endif()
+
+# ARM MINGW PROJECT
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux") 
+    SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib/ARMCC) 
+    if(USERDEFINE_ALL_LIBS)
+        foreach(_libs  ${USERDEFINE_ALL_LIBS} )
+            message("==add libs: " lib${_libs}.lib)
+            include_directories(${_libs})
+        endforeach()
+    endif()
+ELSE ()
+    MESSAGE("=== other platform: ${CMAKE_SYSTEM_NAME} ")
+ENDIF()
+
+
+# target for ftest  
 FUNCTION( target_ftest project_name  )
     IF (EXISTS ${ROOTPATH}/src/ftest)
         AUX_SOURCE_DIRECTORY(ftest  FTESTSRC )
@@ -72,6 +109,7 @@ FUNCTION( target_ftest project_name  )
     ENDIF()
 ENDFUNCTION()
 
+#target for cppunit
 FUNCTION( target_cppunit project_name  )
     if (EXISTS ${ROOTPATH}/src/test_cppunit)
         AUX_SOURCE_DIRECTORY(test_cppunit  TESTSRC )
@@ -87,53 +125,45 @@ FUNCTION( target_cppunit project_name  )
     endif()
 ENDFUNCTION()
 
-FUNCTION( print_project_info )
-    message("=============================================")
-    message(" CMAKE_SYSTEM_NAME   : " ${CMAKE_SYSTEM_NAME} " " ${CMAKE_SYSTEM_PROCESSOR} )
-    message(" CMAKE_C_COMPILER    : " ${CMAKE_C_COMPILER} )
-    message(" CMAKE_CXX_COMPILER  : " ${CMAKE_CXX_COMPILER} )
-    message(" CMAKE_ASM_COMPILER  : " ${CMAKE_ASM_COMPILER} )
-    message(" CMAKE_C_FLAGS       : " ${CMAKE_C_FLAGS} )
-    message(" CMAKE_CXX_FLAGS     : " ${CMAKE_CXX_FLAGS} )
-    message(" CMAKE_C_FLAGS_INIT  : " ${CMAKE_C_FLAGS_INIT} )
-    message(" CMAKE_CXX_FLAGS_INIT: " ${CMAKE_CXX_FLAGS_INIT} )
-    message(" CMAKE_ASM_FLAGS_INIT: " ${CMAKE_ASM_FLAGS_INIT} )
 
-    message(" EXECUTABLE_OUTPUT_PATH: " ${EXECUTABLE_OUTPUT_PATH} )
-    message(" LIBRARY_OUTPUT_PATH   : " ${LIBRARY_OUTPUT_PATH} )
-    message("=============================================")
-ENDFUNCTION()
+# print  project info 
+message("\n===================================" ${CMAKE_SYSTEM_NAME} "=====================================")
+message("CMAKE_C_COMPILER  : " ${CMAKE_C_COMPILER}  )
+message("CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER})
+message("CMAKE_ASM_COMPILER: " ${CMAKE_ASM_COMPILER})
+message("CMAKE_LINKER      : " ${CMAKE_LINKER}      )
+message("CMAKE_AR          : " ${CMAKE_AR}          )
+if(CMAKE_CXX_FLAGS)
+    message("CMAKE_C_FLAGS            : " ${CMAKE_C_FLAGS}  )
+endif(CMAKE_CXX_FLAGS)
+if(CMAKE_CXX_FLAGS)
+    message("CMAKE_CXX_FLAGS          : " ${CMAKE_CXX_FLAGS}  )
+endif(CMAKE_CXX_FLAGS)
+if(USER_LD_FLAGS)
+    message("USER_LD_FLAGS            : " ${USER_LD_FLAGS}  )
+endif(USER_LD_FLAGS)
+if(EXECUTABLE_OUTPUT_PATH)
+    message("EXECUTABLE_OUTPUT_PATH: " ${EXECUTABLE_OUTPUT_PATH} )
+endif(EXECUTABLE_OUTPUT_PATH)
 
-# Widows Visual Studio PROJECT
-IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    MESSAGE(STATUS " current platform: Windows ")
-    SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
-
-    #WINDOWS PC ADD CPPUINT FRAME
-    target_cppunit( ${mname} )
-# ARM MINGW PROJECT
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux") 
-    MESSAGE( STATUS "current platform: Linux ")
-    SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib/ARMCC) 
-    SET(CMAKE_ASM_FLAGS_INIT  "--cpu Cortex-M3 -g --apcs=interwork --pd \\"__MICROLIB SETA 1\\" ")
-    SET(CMAKE_C_FLAGS_INIT    "--c99 --gnu -c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections")
-    SET(CMAKE_CXX_FLAGS_INIT  "${CMAKE_C_FLAGS_INIT}")
-ELSE ()
-    MESSAGE("=== other platform: ${CMAKE_SYSTEM_NAME} ")
-ENDIF()
-
-#TARGET OR LIB 
-IF (SRC)
-    ADD_LIBRARY( ${mname}  ${SRC} )  
-    MESSAGE(STATUS "project src file: ")
-    foreach(_var ${SRC})
-        MESSAGE("   ${_var}")
+if(LIBRARY_OUTPUT_PATH)
+    message("LIBRARY_OUTPUT_PATH   : " ${LIBRARY_OUTPUT_PATH} )
+endif(LIBRARY_OUTPUT_PATH)
+#print include dir
+if(USERDEFINE_INCLUDE)
+    foreach(_include  ${USERDEFINE_INCLUDE} )
+        message("==user header dir: " ${_include})
+        include_directories(${_include})
     endforeach()
-ENDIF(SRC)
+endif()
+#print src files
+foreach(_srcfile ${SRC})
+    message("  " ${_srcfile})
+endforeach()
+message("===================================" ${CMAKE_SYSTEM_NAME} "=====================================\\n")
 
 
 target_ftest( ${mname} )
-print_project_info()
 
 """
 
@@ -234,7 +264,6 @@ void %(prjname)s_test::%(prjname)s_test_ver()
     CPPUNIT_EASSERT( 1, ver_%(prjname)s.patch ); 
 }
 
-//将TestSuite注册到一个名为alltest的TestSuite中
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(  %(prjname)s_test,"cppunit_test_all");
 """
 
@@ -335,36 +364,39 @@ armcmake_template = \
 # minimum  cmake  version  
 cmake_minimum_required(VERSION 3.7)
 
-SET(CMAKE_SYSTEM_NAME Linux)
+SET(CMAKE_SYSTEM_NAME    Linux)
 SET(CMAKE_SYSTEM_PROCESSOR arm)
 
-SET(ARMCC_ROOT  "D:/myprogram/keil5/ARM/ARMCC")
-SET(CMAKE_C_COMPILER  ${ARMCC_ROOT}/bin/armcc.exe)
-SET(CMAKE_CXX_COMPILER  ${CMAKE_C_COMPILER})
-SET(CMAKE_ASM_COMPILER ${ARMCC_ROOT}/bin/armasm.exe)
-SET(CMAKE_LINKER ${ARMCC_ROOT}/bin/armlink.exe )
-SET(CMAKE_AR ${ARMCC_ROOT}/bin/armar.exe)
-SET(INIT_CP_FLAGS "--apcs=interwork -c --cpu=cortex-a9 -O0 --debug -DVFP_DREG=32 --fpu=vfpv3 --c90 -g")
+SET(ARMCC_ROOT          "D:/myprogram/keil5/ARM/ARMCC")
+SET(CMAKE_C_COMPILER    ${ARMCC_ROOT}/bin/armcc.exe   )
+SET(CMAKE_CXX_COMPILER  ${CMAKE_C_COMPILER}           )
+SET(CMAKE_ASM_COMPILER  ${ARMCC_ROOT}/bin/armasm.exe  )
+SET(CMAKE_LINKER        ${ARMCC_ROOT}/bin/armlink.exe )
+SET(CMAKE_AR            ${ARMCC_ROOT}/bin/armar.exe   )
 
+SET(CMAKE_C_FLAGS  "-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections --fpu=vfpv3\\
+    -ID:/myprogram/keil5/ARM/PACK/Keil/STM32F1xx_DFP/2.1.0/Device/Include\\
+    -ID:/myprogram/keil5/ARM/CMSIS/Include\\
+    -D__UVISION_VERSION=\\"526\\" -DSTM32F10X_HD ")
+SET(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
+
+SET(USER_LD_FLAGS "\\
+--cpu=Cortex-M3 *.\\
+--library_type=microlib --strict \\
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols \\
+--info sizes --info totals --info unused --info veneers  " )
+
+SET(USER_ASM_FLAGS "\\
+--cpu Cortex-M3 -g --apcs=interwork --pd \\"__MICROLIB SETA 1\\" \\
+-I D:/myprogram/keil5/ARM/PACK/Keil/STM32F1xx_DFP/2.1.0/Device/Include \\
+-I D:/myprogram/keil5/ARM/CMSIS/Include \\
+--pd \\"__UVISION_VERSION SETA 526\\" --pd \\"STM32F10X_HD SETA 1\\"  ")
+SET(CMAKE_ASM_FLAGS_INIT ${USER_ASM_FLAGS})
 '''
 
 common_template = \
 '''
 #  common cmake file: all define  functions  
 
-function(set_output_path)
-    #set(CMAKE_SYSTEM_NAME ${platform} )
-    IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
-        MESSAGE("=== current platform: Windows ")
-        SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib) 
-        MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
-    ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
-        MESSAGE("=== current platform: Linux ")
-        SET(LIBRARY_OUTPUT_PATH ${ROOTPATH}/lib/ARMCC) 
-        MESSAGE(STATUS "library_output_path   : " ${LIBRARY_OUTPUT_PATH} )
-    ELSE ()
-        MESSAGE("=== other platform: ${CMAKE_SYSTEM_NAME} ")
-    ENDIF()
-endfunction(set_output_path)
 
 '''

@@ -31,7 +31,7 @@ class  ArmProject(object):
             ######################
             os.chdir(r'projects/bdef')
             cmake = self.rootpath + '\\cmake\\arm.cmake'
-            cmds = "cmake  ../..  -G\"%s\" -DCMAKE_TOOLCHAIN_FILE=%s"%("MinGW Makefiles",cmake)
+            cmds = "cmake  ../..  -G\"%s\" -DCMAKE_TOOLCHAIN_FILE=%s "%("MinGW Makefiles",cmake)
             print(cmds)
             os.system(cmds)
             os.chdir(self.rootpath)
@@ -64,7 +64,7 @@ class  ArmProject(object):
                     tohex = "%s.hex"%(pom.artifactId[0])
                     try:
                         os.system("fromelf --bin --output=%s %s"%(tobin, filename ))
-                        os.system("fromelf --vhx --output=%s %s"%(tohex, filename ))
+                        os.system("fromelf --i32 --output=%s %s --base=0x08000000"%(tohex, filename ))
                         print("\n create .bin or hex success ")
                     except:
                         print("\n create .bin or hex fail ")
