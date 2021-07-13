@@ -99,11 +99,20 @@ FUNCTION( target_ftest project_name  )
     IF (EXISTS ${ROOTPATH}/src/ftest)
         AUX_SOURCE_DIRECTORY(ftest  FTESTSRC )
         #link_directories(${ROOTPATH}/lib/Windows)
-        ADD_EXECUTABLE( ftest_${project_name}  ${SRC}  ${FTESTSRC}  )
+        ADD_EXECUTABLE( ftest_${project_name} ${ASM_SRC}  ${SRC}  ${FTESTSRC}  )
         #target_link_libraries(
         #   cppunit_${project_name}   
         #    
         #)
+        #create .bin  .hex file
+        set(ELF_FILE  ${ROOTPATH}/bin/Debug/ftest_${project_name}.elf)
+        set(HEX_FILE  ${ROOTPATH}/bin/Debug/ftest_${project_name}.hex)
+        set(BIN_FILE  ${ROOTPATH}/bin/Debug/ftest_${project_name}.bin)
+
+        add_custom_command(TARGET "ftest_${project_name}" POST_BUILD
+            COMMAND fromelf --bin --output=${BIN_FILE} ${ELF_FILE} 
+            COMMAND fromelf --i32 --output=${HEX_FILE} ${ELF_FILE} --base=0x08000000
+        )
     ELSE()
         MESSAGE(STATUS " dir ftest not exist ")
     ENDIF()
@@ -392,6 +401,10 @@ SET(USER_ASM_FLAGS "\\
 -I D:/myprogram/keil5/ARM/CMSIS/Include \\
 --pd \\"__UVISION_VERSION SETA 526\\" --pd \\"STM32F10X_HD SETA 1\\"  ")
 SET(CMAKE_ASM_FLAGS_INIT ${USER_ASM_FLAGS})
+
+SET(ASM_SRC "")
+# defining common .s source variables
+list(APPEND ASM_SRC "../src/Libraries/CMSIS/startup/startup_stm32f10x_hd.s")
 '''
 
 common_template = \
